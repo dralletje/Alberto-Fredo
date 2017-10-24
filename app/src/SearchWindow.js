@@ -5,7 +5,7 @@ import React from 'react';
 import { Window, IPC } from './Electron';
 import DocumentEvent from './DocumentEvent';
 
-class SearchWindow extends React.Component<{ open: boolean, onOpenChange: (next: boolean) => mixed }> {
+class SearchWindow extends React.Component<{ open: boolean, onOpenChange: (next: boolean) => mixed, children?: any }> {
   componentDidMount() {
     this.props.onOpenChange(true);
   }
@@ -18,6 +18,7 @@ class SearchWindow extends React.Component<{ open: boolean, onOpenChange: (next:
       >
         <DocumentEvent
           name="keyDown"
+          passive
           handler={(e) => {
             if (e.which === 27) {
               this.props.onOpenChange(false);

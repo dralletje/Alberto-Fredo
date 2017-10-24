@@ -6,26 +6,42 @@ import './styles/global.css';
 import Promise from 'bluebird';
 import open_file from 'open';
 import { range } from 'lodash';
+import osascript from 'osascript';
 
 import DraggingLayer from './DragndropLayer';
+import DocumentEvent from './DocumentEvent';
 import SearchWindow from './SearchWindow';
 import { Flex, Component, View, Space, precondition } from './Elements';
-import {
-  Window,
-  get_image_url_for_path,
-  icons_cache,
-  ipcRenderer,
-  remote,
-} from './Electron';
+import { Window, get_image_url_for_path, icons_cache, ipcRenderer, remote } from './Electron';
 import { clipboard } from 'electron';
 
+const exec_applescript = script => {
+  return new Promise((yell, cry) => {
+    const real_script = `
+      const main = () => {
+        ${script}
+      }
+      JSON.stringify(main() || []);
+    `;
+    osascript.eval(real_script, (err, result) => {
+      if (err) {
+        cry(err);
+      } else {
+        yell(JSON.parse(result)[0]);
+      }
+    });
+  });
+};
+
 type T_Icon = { type: 'file' | 'image', path: string };
+type T_Action = { type: 'open', path: string } | { type: 'chrome_tab', windowId: number, tabId: number };
+
 type T_match_item = {
   icon: T_Icon,
   uid: string,
   title: string,
   subtitle: string,
-  open_path: string,
+  action: T_Action,
 };
 
 type T_File_Icon_Image_Props = {
@@ -187,14 +203,6 @@ class MatchItem extends React.Component<{ item: T_match_item, selected: boolean 
   }
 }
 
-const get_as_string_async = item => {
-  return new Promise((yell, cry) => {
-    item.getAsString(y => {
-      yell(y);
-    });
-  });
-};
-
 type T_file = {
   path: string,
   name: string,
@@ -206,6 +214,10 @@ type T_app_state = {
   dragging: boolean,
   dropped: Array<T_file>,
   currently_running: Array<string>,
+  chrome_tabs: Array<T_match_item>,
+
+  window_open: boolean,
+  current_clipboard: ?string,
 };
 export default class App extends React.Component<{}, T_app_state> {
   state = {
@@ -215,14 +227,45 @@ export default class App extends React.Component<{}, T_app_state> {
     dragging: false,
     dropped: [],
     currently_running: [],
+    chrome_tabs: [],
 
     window_open: false,
     current_clipboard: null,
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     ipcRenderer.on('entries', (_, entries) => {
-      this.setState({ entries: entries });
+      this.setState({
+        entries: entries.map(entry => {
+          return {
+            ...entry,
+            action: { type: 'open', path: entry.open_path },
+          };
+        }),
+      });
+    });
+
+    exec_applescript(`
+      const Chrome = Application('Google Chrome')
+      const windows = Chrome.windows()
+      const tabs = windows.map(window => {
+        return window.tabs().map(tab => {
+          return { title: tab.title(), url: tab.url(), tabId: tab.id(), windowId: window.id() };
+        })
+      })
+      return tabs;
+    `).then(tabs => {
+      this.setState({
+        chrome_tabs: tabs.map(tab => {
+          return {
+            icon: { type: 'file', path: '/Applications/Google Chrome.app' },
+            uid: tab.url,
+            title: tab.title,
+            subtitle: tab.url,
+            action: { type: 'chrome_tab', windowId: tab.windowId, tabId: tab.tabId },
+          };
+        }),
+      });
     });
     ipcRenderer.on('currently_running', (_, currently_running) => {
       this.setState({ currently_running });
@@ -242,8 +285,15 @@ export default class App extends React.Component<{}, T_app_state> {
 
   render() {
     const {
-      search, entries, selected_index, dragging, current_clipboard,
-      dropped, currently_running, window_open,
+      search,
+      entries,
+      selected_index,
+      dragging,
+      current_clipboard,
+      dropped,
+      currently_running,
+      window_open,
+      chrome_tabs,
     } = this.state;
 
     const matching_apps =
@@ -251,26 +301,36 @@ export default class App extends React.Component<{}, T_app_state> {
         ? {
             items: currently_running
               .map(x => {
-                return entries.find(y => x === y.open_path);
+                return entries.find(y => y.action.type === 'file' && x === y.action.path);
               })
               .filter(Boolean),
           }
         : fuzzy_search({
-            array: entries,
+            array: [...entries, ...chrome_tabs],
             key_selector: x => x.title,
             search: search,
           });
 
     const open_item = item => {
-      open_file(item.open_path);
-      this.setState({ window_open: false });
+      if (item.action.type === 'open') {
+        open_file(item.action.path);
+        this.setState({ window_open: false });
+      } else if (item.action.type === 'chrome_tab') {
+        const { windowId, tabId } = item.action;
+        exec_applescript(`
+          Chrome = Application('Google Chrome')
+          ChromeWindow = Chrome.windows.byId(${windowId})
+          index = ChromeWindow.tabs().findIndex(x => x.id() === ${tabId}) + 1
+          ChromeWindow.activeTabIndex = index
+          ChromeWindow.index = 1
+          Chrome.activate()
+        `);
+        this.setState({ window_open: false });
+      }
     };
 
     return (
-      <SearchWindow
-        open={window_open}
-        onOpenChange={new_open => this.setState({ window_open: new_open })}
-      >
+      <SearchWindow open={window_open} onOpenChange={new_open => this.setState({ window_open: new_open })}>
         <DraggingLayer
           onDraggingChange={dragging => {
             this.setState({ dragging });
@@ -278,6 +338,16 @@ export default class App extends React.Component<{}, T_app_state> {
           dragging={dragging}
           onDrop={transfer_item => {
             this.setState(state => ({ dropped: [...state.dropped, transfer_item] }));
+          }}
+        />
+
+        <DocumentEvent
+          name="keyDown"
+          passive
+          handler={async e => {
+            if (e.which === 70 && e.metaKey) {
+              // Start browser - do CDM+F
+            }
           }}
         />
 

@@ -97,6 +97,7 @@ app.on('ready', async () => {
     frame: false,
     vibrancy: 'light',
   });
+  mainWindow.setVisibleOnAllWorkspaces(true);
 
   mainWindow.loadURL(`file://${__dirname}/app/index.html`)
 
@@ -112,13 +113,6 @@ app.on('ready', async () => {
     });
   });
 
-  mainWindow.isShowing = false;
-
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.setVisibleOnAllWorkspaces(true);
-    mainWindow.isShowing = true;
-    mainWindow.show();
-  });
 
   ipcMain.on('resize_me', (event, bounds) => {
     mainWindow.setBounds(bounds);
@@ -137,7 +131,7 @@ app.on('ready', async () => {
   })
 
   mainWindow.on('blur', () => {
-    if (!mainWindow.webContents.isDevToolsOpened()) {
+    if (!mainWindow.webContents.isDevToolsFocused()) {
       mainWindow.send('blur');
     }
   })

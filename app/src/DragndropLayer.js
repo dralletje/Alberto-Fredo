@@ -1,7 +1,15 @@
 import React from 'react';
 
 import DocumentEvent from './DocumentEvent';
-import { Flex } from './Elements';
+import { Flex, precondition } from './Elements';
+
+const get_as_string_async = item => {
+  return new Promise((yell, cry) => {
+    item.getAsString(y => {
+      yell(y);
+    });
+  });
+};
 
 const DragndropLayer = ({ onDraggingChange, dragging, onDrop }) => {
   return (
