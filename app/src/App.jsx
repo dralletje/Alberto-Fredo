@@ -6,32 +6,25 @@ import './styles/global.css';
 import Promise from 'bluebird';
 import open_file from 'open';
 import { range } from 'lodash';
-import osascript from 'osascript';
 
 import DraggingLayer from './DragndropLayer';
 import DocumentEvent from './DocumentEvent';
 import SearchWindow from './SearchWindow';
+import MathResult from './MathResult';
+import { exec_applescript } from './Applescript';
+
 import { Flex, Component, View, Space, precondition } from './Elements';
-import { Window, get_image_url_for_path, icons_cache, ipcRenderer, remote } from './Electron';
+import { Window, File_Icon_Image, ipcRenderer, remote } from './Electron';
 import { clipboard } from 'electron';
 
-const exec_applescript = script => {
-  return new Promise((yell, cry) => {
-    const real_script = `
-      const main = () => {
-        ${script}
-      }
-      JSON.stringify(main() || []);
-    `;
-    osascript.eval(real_script, (err, result) => {
-      if (err) {
-        cry(err);
-      } else {
-        yell(JSON.parse(result)[0]);
-      }
-    });
-  });
-};
+const rotate = (num, around_num) => {
+  const relative = num % around_num;
+  if (relative < 0) {
+    return around_num + relative; // (relative is negative here)
+  } else {
+    return relative;
+  }
+}
 
 type T_Icon = { type: 'file' | 'image', path: string };
 type T_Action = { type: 'open', path: string } | { type: 'chrome_tab', windowId: number, tabId: number };
@@ -43,41 +36,6 @@ type T_match_item = {
   subtitle: string,
   action: T_Action,
 };
-
-type T_File_Icon_Image_Props = {
-  icon: T_Icon,
-};
-class File_Icon_Image extends React.Component<T_File_Icon_Image_Props, { base64: ?string }> {
-  state = {
-    base64: icons_cache.get(this.props.icon.path),
-  };
-
-  componentDidMount() {
-    const { icon } = this.props;
-    const { base64 } = this.state;
-
-    if (icon.type === 'file' && base64 == null) {
-      setTimeout(() => {
-        const base64 = get_image_url_for_path(icon.path);
-        setTimeout(() => {
-          this.setState({ base64 });
-        }, 10);
-      }, 10);
-    }
-  }
-
-  render() {
-    const { icon, ...props } = this.props;
-    const { base64 } = this.state;
-
-    if (icon.type === 'file' && base64 == null) {
-      // TODO Placeholder image
-      return <div {...props} />;
-    } else {
-      return <img src={icon.type === 'file' ? base64 : icon.path} {...props} />;
-    }
-  }
-}
 
 const fuzzy_match_score = (string, search) => {
   let search_index = 0;
@@ -152,12 +110,12 @@ class MatchItem extends React.Component<{ item: T_match_item, selected: boolean 
 
     return (
       <Flex
-        draggable="true"
         row
         {...props}
         style={{
           backgroundColor: selected ? 'rgba(255,255,255,0.3)' : 'transparent',
           borderBottom: `1px solid rgba(0,0,0,.02)`,
+          overflow: 'hidden',
         }}
       >
         <File_Icon_Image
@@ -172,30 +130,42 @@ class MatchItem extends React.Component<{ item: T_match_item, selected: boolean 
         <Flex
           column
           style={{
+            flex: 1,
+            minWidth: 0,
             justifyContent: 'center',
+            WebkitMaskImage: `linear-gradient(-90deg, transparent 0%, black 40px, black)`,
           }}
         >
           <Flex
             row
+            className="no-scrollbar"
             style={{
+              minWidth: 0,
               color: selected ? '#4E585C' : '#7E848C',
               fontSize: 24,
               fontFamily: 'BlinkMacSystemFont',
               fontWeight: 300,
+              whiteSpace: 'nowrap',
+              overflow: 'auto',
             }}
           >
             {item.title}
+            <Space width={50} />
           </Flex>
           <Flex
             row
+            className="no-scrollbar"
             style={{
               color: selected ? '#6D777B' : '#91979F',
               fontSize: 11,
               fontFamily: 'BlinkMacSystemFont',
               fontWeight: 300,
+              whiteSpace: 'nowrap',
+              overflow: 'auto',
             }}
           >
             {item.subtitle}
+            <Space width={50} />
           </Flex>
         </Flex>
       </Flex>
@@ -253,7 +223,7 @@ export default class App extends React.Component<{}, T_app_state> {
           return { title: tab.title(), url: tab.url(), tabId: tab.id(), windowId: window.id() };
         })
       })
-      return tabs;
+      return [].concat(...tabs);
     `).then(tabs => {
       this.setState({
         chrome_tabs: tabs.map(tab => {
@@ -267,9 +237,6 @@ export default class App extends React.Component<{}, T_app_state> {
         }),
       });
     });
-    ipcRenderer.on('currently_running', (_, currently_running) => {
-      this.setState({ currently_running });
-    });
   }
 
   componentDidUpdate(_, prevState) {
@@ -277,8 +244,16 @@ export default class App extends React.Component<{}, T_app_state> {
       if (this.state.window_open === false) {
         this.setState({ search: '' });
       } else {
-        console.log('READ IMAGE');
+        // This is when window receives focus:
+        // - Get current clipboard value
+        // - Get currently running applications
+
         this.setState({ current_clipboard: clipboard.readImage() });
+
+        exec_applescript(`return Application("System Events").processes.where({ backgroundOnly: false })().map(process => process.file().posixPath())`)
+        .then(currently_running => {
+          this.setState({ currently_running });
+        });
       }
     }
   }
@@ -301,7 +276,7 @@ export default class App extends React.Component<{}, T_app_state> {
         ? {
             items: currently_running
               .map(x => {
-                return entries.find(y => y.action.type === 'file' && x === y.action.path);
+                return entries.find(y => y.action.type === 'open' && x === y.action.path);
               })
               .filter(Boolean),
           }
@@ -320,14 +295,16 @@ export default class App extends React.Component<{}, T_app_state> {
         exec_applescript(`
           Chrome = Application('Google Chrome')
           ChromeWindow = Chrome.windows.byId(${windowId})
-          index = ChromeWindow.tabs().findIndex(x => x.id() === ${tabId}) + 1
-          ChromeWindow.activeTabIndex = index
           ChromeWindow.index = 1
           Chrome.activate()
+          index = ChromeWindow.tabs().findIndex(x => x.id() === ${tabId}) + 1
+          ChromeWindow.activeTabIndex = index
         `);
         this.setState({ window_open: false });
       }
     };
+
+    const amount_of_items_showing = Math.min(matching_apps.items.length, 5)
 
     return (
       <SearchWindow open={window_open} onOpenChange={new_open => this.setState({ window_open: new_open })}>
@@ -338,16 +315,6 @@ export default class App extends React.Component<{}, T_app_state> {
           dragging={dragging}
           onDrop={transfer_item => {
             this.setState(state => ({ dropped: [...state.dropped, transfer_item] }));
-          }}
-        />
-
-        <DocumentEvent
-          name="keyDown"
-          passive
-          handler={async e => {
-            if (e.which === 70 && e.metaKey) {
-              // Start browser - do CDM+F
-            }
           }}
         />
 
@@ -369,6 +336,19 @@ export default class App extends React.Component<{}, T_app_state> {
               e.target.focus();
             }}
             onKeyDown={e => {
+              if (e.which === 70 && e.metaKey) {
+                this.setState({ window_open: false }, async () => {
+                  exec_applescript(`
+                    FrontApp = Application('System Events').processes.whose({ frontmost: true }).first()
+                    Script = Application(FrontApp.name()).activate()
+                    delay(0.2);
+                    System = Application('System Events');
+                    System.keystroke("f", { using: ['command down'] })
+                    delay(0.2);
+                    System.keystroke("${search}");
+                  `);
+                })
+              }
               if (e.which === 13) {
                 // Enter
                 const first_app = matching_apps.items[0];
@@ -379,6 +359,18 @@ export default class App extends React.Component<{}, T_app_state> {
               if (e.which === 27) {
                 // Escape TODO Move to SearchWindow
                 this.setState({ window_open: false });
+              }
+              if (e.which === 40) {
+                // Down arrow
+                this.setState({
+                  selected_index: rotate(selected_index + 1, amount_of_items_showing),
+                })
+              }
+              if (e.which === 38) {
+                // Up Arrow
+                this.setState({
+                  selected_index: rotate(selected_index - 1, amount_of_items_showing),
+                })
               }
             }}
             autoFocus
@@ -395,6 +387,8 @@ export default class App extends React.Component<{}, T_app_state> {
               }}
             />
           )}
+
+          <MathResult text={search} />
 
           <Flex
             column
@@ -519,15 +513,14 @@ export default class App extends React.Component<{}, T_app_state> {
                     }}
                   />
 
-                  <div
+                  <File_Icon_Image
+                    type="background"
+                    icon={file.path}
                     style={{
                       backgroundSize: 'contain',
                       backgroundRepeat: 'no-repeat',
                       backgroundPosition: 'center',
                       flex: 1,
-                      backgroundImage: `url("${file.path.match(/(\.png|\.jpg)/)
-                        ? file.path
-                        : get_image_url_for_path(file.path)}")`,
                       zIndex: 10,
                     }}
                   />
@@ -536,7 +529,6 @@ export default class App extends React.Component<{}, T_app_state> {
                 <span
                   style={{
                     fontSize: 11,
-                    fontFamily: `BlinkMacSystemFont`,
                     width: 120,
                     color: `rgba(0,0,0,.7)`,
                   }}

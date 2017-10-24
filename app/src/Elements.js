@@ -16,7 +16,7 @@ export const View = ({ innerRef, css, ...props }: { innerRef?: (element: any) =>
 };
 
 export const Space = ({ width, height }: { width?: number, height?: number }) => {
-  return <div style={{ width, height }} />;
+  return <div style={{ width, height, minWidth: width, minHeight: height }} />;
 };
 
 type T_lifecycle_props = {

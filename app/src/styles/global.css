@@ -19,7 +19,7 @@ html {
 
 body {
     font-family: BlinkMacSystemFont;
-  
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -33,4 +33,31 @@ input[type="text"] {
 }
 input[type="text"]:focus {
   outline: none;
+}
+
+.katex,
+.katex .mathit {
+  font-size: 1em !important;
+  font-family: BlinkMacSystemFont !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    width: 0px;  /* remove scrollbar space */
+    height: 0px;
+    background: transparent;  /* optional: just make scrollbar invisible */
+}
+
+.function-plot .domain,
+.function-plot .top-right-legend,
+.function-plot .tip {
+  display: none;
+}
+.function-plot .line {
+  stroke: black;
+}
+.function-plot .origin {
+  opacity: 0.1;
+}
+.function-plot .tick {
+  opacity: 0.5 !important;
 }

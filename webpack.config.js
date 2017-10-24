@@ -15,6 +15,14 @@ module.exports = {
     module: {
         rules: [
             {
+              test: /\.(ttf|otf|eot|svg|woff)(\?[a-z0-9]+)?$/,
+              loader: 'ignore-loader',
+            },
+            {
+              test: /\.(woff2)(\?[a-z0-9]+)?$/,
+              loader: 'file-loader?name=fonts/[name].[ext]',
+            },
+            {
                 test: /\.jsx?$/,
                 loader: 'babel-loader',
                 options: {

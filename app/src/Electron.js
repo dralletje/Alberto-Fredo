@@ -11,7 +11,6 @@ const iconImage = req('../electron-icon-image');
 import { Flex} from './Elements';
 
 export const icons_cache: Map<string, string> = new Map();
-
 export const get_image_url_for_path = (path_uppercase: string) => {
   const path = path_uppercase.toLowerCase();
   const icon_cached = icons_cache.get(path);
@@ -25,6 +24,65 @@ export const get_image_url_for_path = (path_uppercase: string) => {
     return icon_url;
   }
 }
+
+type T_Icon = { type: 'file' | 'image', path: string };
+type T_File_Icon_Image_Props = {
+  icon: T_Icon,
+  style?: any,
+  type?: 'image' | 'background'
+};
+export class File_Icon_Image extends React.Component<T_File_Icon_Image_Props, { base64: ?string }> {
+  state = {
+    base64: icons_cache.get(this.props.icon.path),
+  };
+  is_mounted = false;
+
+  componentDidMount() {
+    const { icon } = this.props;
+    const { base64 } = this.state;
+    this.is_mounted = true;
+
+    if (icon.type === 'file' && base64 == null) {
+      setTimeout(() => {
+        if (!this.is_mounted) {
+          return;
+        }
+        const base64 = get_image_url_for_path(icon.path);
+        setTimeout(() => {
+          if (!this.is_mounted) {
+            return;
+          }
+          this.setState({ base64 });
+        }, 10);
+      }, 10);
+    }
+  }
+
+  componentWillUnmount() {
+    this.is_mounted = false
+  }
+
+  render() {
+    const { icon, style, type, ...props } = this.props;
+    const { base64 } = this.state;
+
+    if (icon.type === 'file' && base64 == null) {
+      // TODO Placeholder image
+      return <div style={style} {...props} />;
+    } else {
+      const source = icon.type === 'file' && base64 ? base64 : icon.path;
+      if (type === 'background') {
+        return <div style={{
+          ...style,
+          backgroundImage: `url("${source}")`
+        }} {...props} />
+      }
+      return <img style={style} src={source} {...props} />;
+    }
+  }
+}
+
+
 
 type T_IPCListener_props = {
   handler: (e: any) => mixed,
@@ -68,7 +126,7 @@ export class Window extends React.Component<{ style: any, children: any, open: b
         width: Math.ceil(width),
         height: Math.ceil(height),
         x: Math.round((screen.width - 620) / 2),
-        y: Math.round((screen.height - 400) / 2),
+        y: Math.round((screen.height - 600) / 2),
       });
     }
 

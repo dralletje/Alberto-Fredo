@@ -10,8 +10,8 @@ const readplist_nonpromise = require('readplist');
 const readplist = Promise.promisify(readplist_nonpromise);
 
 // const fs = Promise.promisifyAll(require('fs'));
-// const $ = require('NodObjC');
-// $.import('Foundation');
+const $ = require('NodObjC');
+$.import('Foundation');
 // $.import('AppKit');
 const iconImage = require('./electron-icon-image/index.js');
 
@@ -19,10 +19,14 @@ const get_image_url_for_path = (path) => {
   return nativeImage.createFromBuffer(iconImage.get_icon_for_path(path));
 }
 
-// const pool = $.NSAutoreleasePool('alloc')('init')
-// const workspace = $.NSWorkspace('sharedWorkspace')
-// const file = workspace('iconForFile', $('/System/Library/PreferencePanes/Bluetooth.prefPane'))
-// console.log(`array:`, file.name)
+const pool = $.NSAutoreleasePool('alloc')('init')
+const query = $.NSMetadataQuery('alloc')('init')
+query('setSearchScopes', $.NSArray('arrayWithObject', $.NSMetadataQueryUbiquitousDocumentsScope));
+console.log(`query:`, query);
+const pred = $.NSPredicate('predicateWithFormat', $("%K ENDSWITH '.txt'"), $.NSMetadataItemFSNameKey);
+
+query('setPredicate', pred);
+query('startQuery');
 
 // Let electron reloads by itself when webpack watches changes in ./app/
 require('electron-reload')(__dirname)
@@ -142,8 +146,6 @@ app.on('ready', async () => {
   // Register a 'CommandOrControl+X' shortcut listener.
   const ret = globalShortcut.register('CommandOrControl+Space', async () => {
     mainWindow.send('toggle_search_shortcut');
-    const result = await applescript.execStringAsync(`tell application "System Events" to get POSIX path of file of (processes where background only is false)`);
-    mainWindow.send('currently_running', result);
   });
 
   if (!ret) {
