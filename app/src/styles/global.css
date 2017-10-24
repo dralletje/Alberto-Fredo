@@ -12,22 +12,25 @@
 html {
     height: 100%;
 }
+
+* {
+  box-sizing: border-box;
+}
+
 body {
+    font-family: BlinkMacSystemFont;
+  
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100%;
     margin: auto;
 }
-#app {
-    color: #2c3e50;
-    max-width: 600px;
-    font-family: Source Sans Pro, Helvetica, sans-serif;
-    text-align: center;
+
+input[type="text"] {
+  border: none;
+  padding: 0px;
 }
-#app p {
-    text-align: justify;
-}
-.hello {
-    color: var(--primary-color);
+input[type="text"]:focus {
+  outline: none;
 }

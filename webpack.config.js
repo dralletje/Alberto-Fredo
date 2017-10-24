@@ -1,11 +1,9 @@
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 module.exports = {
-
     watch: true,
 
-    target: 'electron',
-
+    target: 'electron-renderer',
     entry: './app/src/entry.js',
 
     output: {
@@ -20,7 +18,7 @@ module.exports = {
                 test: /\.jsx?$/,
                 loader: 'babel-loader',
                 options: {
-                    presets: ['react']
+                    presets: ['react', 'es2017', 'stage-2'],
                 }
             },
             {
