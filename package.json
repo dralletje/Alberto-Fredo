@@ -1,7 +1,7 @@
 {
   "name": "electron-react-webpack",
   "version": "1.0.0",
-  "description": "Electron + React + Webpack 2 seed.",
+  "description": "",
   "main": "main.js",
   "scripts": {
     "dev": "webpack",
@@ -9,7 +9,7 @@
   },
   "author": "J. Renato Ramos González <renato.etc.etc.etc@gmail.com>",
   "repository": "pastahito/electron-react-webpack",
-  "license": "WTFPL",
+  "license": "GPL",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.23.1",
@@ -27,25 +27,19 @@
     "webpack": "^2.2.1"
   },
   "dependencies": {
-    "applescript": "^1.0.0",
     "babel-preset-stage-2": "^6.24.1",
     "bluebird": "^3.5.1",
     "d3": "^3.5.17",
     "function-plot": "^1.18.1",
     "glamor": "^2.20.40",
     "glamorous": "^4.10.0",
-    "glob": "^7.1.2",
     "ignore-loader": "^0.1.2",
     "katex": "^0.9.0-alpha1",
     "lodash": "^4.17.4",
-    "mathjax": "^2.7.2",
     "mathjs": "^3.16.5",
-    "mdfind": "^1.0.0",
-    "mousetrap": "^1.6.1",
     "nodobjc": "^2.1.0",
     "open": "0.0.5",
     "osascript": "^1.2.0",
-    "plist": "^2.1.0",
     "prop-types": "^15.6.0",
     "react": "^15.6.2",
     "react-dom": "^15.4.2",

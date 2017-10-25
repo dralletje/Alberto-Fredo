@@ -3,15 +3,14 @@ const electron = require('electron')
 const Promise = require('bluebird');
 const { app, BrowserWindow, globalShortcut, ipcMain, nativeImage } = electron
 
-const applescript = Promise.promisifyAll(require('applescript'));
 const child_process = Promise.promisifyAll(require('child_process'))
 const os = require('os');
 const readplist_nonpromise = require('readplist');
 const readplist = Promise.promisify(readplist_nonpromise);
 
 // const fs = Promise.promisifyAll(require('fs'));
-const $ = require('NodObjC');
-$.import('Foundation');
+// const $ = require('NodObjC');
+// $.import('Foundation');
 // $.import('AppKit');
 const iconImage = require('./electron-icon-image/index.js');
 
@@ -19,12 +18,40 @@ const get_image_url_for_path = (path) => {
   return nativeImage.createFromBuffer(iconImage.get_icon_for_path(path));
 }
 
+// var AppDelegate = $.NSObject.extend('AppDelegate')
+// AppDelegate.addMethod('queryUpdated:', 'v@:@', function (self, _cmd, notif) {
+//   console.log('got applicationDidFinishLauching')
+//   console.log(notif)
+// })
+// AppDelegate.register()
+// var delegate = AppDelegate('alloc')('init')
+//
 // const pool = $.NSAutoreleasePool('alloc')('init')
 // const query = $.NSMetadataQuery('alloc')('init')
-// query('setSearchScopes', $.NSArray('arrayWithObject', $.NSMetadataQueryUbiquitousDocumentsScope));
-// console.log(`query:`, query);
-// const pred = $.NSPredicate('predicateWithFormat', $("%K ENDSWITH '.txt'"), $.NSMetadataItemFSNameKey);
 //
+// const ns_center = $.NSNotificationCenter('defaultCenter');
+// ns_center(
+//   'addObserver', delegate,
+//   'selector', 'queryUpdated:'
+//   'name', $('NSMetadataQueryDidStartGatheringNotification'),
+//   'object', query,
+// )
+// ns_center(
+//   'addObserver', delegate,
+//   'selector', 'queryUpdated:'
+//   'name', $('NSMetadataQueryDidUpdateNotification'),
+//   'object', query,
+// )
+// ns_center(
+//   'addObserver', delegate,
+//   'selector', 'queryUpdated:'
+//   'name', $('NSMetadataQueryDidFinishGatheringNotification'),
+//   'object', query,
+// )
+//
+// query('setDelegate', delegate)
+// query('setPredicate', $.NSPredicate('predicateWithFormat', $("kMDItemIsScreenCapture = 1"));
+// query('startQuery');
 // query('setPredicate', pred);
 // query('startQuery');
 
