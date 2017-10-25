@@ -19,14 +19,14 @@ const get_image_url_for_path = (path) => {
   return nativeImage.createFromBuffer(iconImage.get_icon_for_path(path));
 }
 
-const pool = $.NSAutoreleasePool('alloc')('init')
-const query = $.NSMetadataQuery('alloc')('init')
-query('setSearchScopes', $.NSArray('arrayWithObject', $.NSMetadataQueryUbiquitousDocumentsScope));
-console.log(`query:`, query);
-const pred = $.NSPredicate('predicateWithFormat', $("%K ENDSWITH '.txt'"), $.NSMetadataItemFSNameKey);
-
-query('setPredicate', pred);
-query('startQuery');
+// const pool = $.NSAutoreleasePool('alloc')('init')
+// const query = $.NSMetadataQuery('alloc')('init')
+// query('setSearchScopes', $.NSArray('arrayWithObject', $.NSMetadataQueryUbiquitousDocumentsScope));
+// console.log(`query:`, query);
+// const pred = $.NSPredicate('predicateWithFormat', $("%K ENDSWITH '.txt'"), $.NSMetadataItemFSNameKey);
+//
+// query('setPredicate', pred);
+// query('startQuery');
 
 // Let electron reloads by itself when webpack watches changes in ./app/
 require('electron-reload')(__dirname)

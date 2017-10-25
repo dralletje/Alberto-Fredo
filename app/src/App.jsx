@@ -515,7 +515,7 @@ export default class App extends React.Component<{}, T_app_state> {
 
                   <File_Icon_Image
                     type="background"
-                    icon={file.path}
+                    icon={{ type: 'file', path: file.path }}
                     style={{
                       backgroundSize: 'contain',
                       backgroundRepeat: 'no-repeat',

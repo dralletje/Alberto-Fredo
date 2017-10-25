@@ -43,6 +43,10 @@ export class File_Icon_Image extends React.Component<T_File_Icon_Image_Props, { 
     this.is_mounted = true;
 
     if (icon.type === 'file' && base64 == null) {
+      const is_png_or_jpg = /(\.png|\.jpe?g)$/.test(icon.path);
+      if (is_png_or_jpg)
+        return;
+
       setTimeout(() => {
         if (!this.is_mounted) {
           return;
@@ -65,12 +69,14 @@ export class File_Icon_Image extends React.Component<T_File_Icon_Image_Props, { 
   render() {
     const { icon, style, type, ...props } = this.props;
     const { base64 } = this.state;
+    const is_png_or_jpg = icon.type === 'file' && /(\.png|\.jpe?g)$/.test(icon.path);
 
-    if (icon.type === 'file' && base64 == null) {
+
+    if (icon.type === 'file' && base64 == null && !is_png_or_jpg) {
       // TODO Placeholder image
       return <div style={style} {...props} />;
     } else {
-      const source = icon.type === 'file' && base64 ? base64 : icon.path;
+      const source = icon.type === 'file' && !is_png_or_jpg && base64 ? base64 : icon.path;
       if (type === 'background') {
         return <div style={{
           ...style,
