@@ -388,7 +388,12 @@ export default class App extends React.Component<{}, T_app_state> {
             />
           )}
 
-          <MathResult text={search} />
+          <MathResult
+            text={search}
+            onTextChange={text => {
+              
+            }}
+          />
 
           <Flex
             column
