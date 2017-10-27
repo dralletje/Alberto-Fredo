@@ -122,36 +122,57 @@ export const IPC = {
 export class Window extends React.Component<{ style: any, children: any, open: boolean }> {
   view_ref: HTMLElement;
   pref_bounds = { height: 0, width: 0 };
+  unmount_fn = () => {};
 
   sideeffects(prevProps) {
-    const { height, width } = this.view_ref.getBoundingClientRect();
-    if (this.pref_bounds.height !== height || this.pref_bounds.width !== width) {
-      this.pref_bounds = { height, width };
-
-      ipcRenderer.send('resize_me', {
-        width: Math.ceil(width),
-        height: Math.ceil(height),
-        x: Math.round((screen.width - 620) / 2),
-        y: Math.round((screen.height - 600) / 2),
-      });
-    }
+    // const { height, width } = this.view_ref.getBoundingClientRect();
+    // if (this.pref_bounds.height !== height || this.pref_bounds.width !== width) {
+    //   this.pref_bounds = { height, width };
+    //
+    //   ipcRenderer.send('resize_me', {
+    //     width: Math.ceil(width),
+    //     height: Math.ceil(height),
+    //     x: Math.round((screen.width - 620) / 2),
+    //     y: Math.round((screen.height - 600) / 2),
+    //   });
+    // }
 
     if (prevProps.open !== this.props.open) {
-      if (this.props.open === true) {
-        remote.getCurrentWindow().show()
-      } else {
-        // TODO More advanced hiding ;)
-        remote.getCurrentWindow().hide();
-      }
+      ipcRenderer.send('visibility_me', {
+        open: this.props.open,
+      })
     }
   }
 
   componentDidMount() {
     this.sideeffects({ open: false });
+
+    const observer = new window.ResizeObserver((e) => {
+      const { height, width } = this.view_ref.getBoundingClientRect();
+      if (this.pref_bounds.height !== height || this.pref_bounds.width !== width) {
+        this.pref_bounds = { height, width };
+
+        ipcRenderer.send('resize_me', {
+          width: Math.ceil(width),
+          height: Math.ceil(height),
+          x: Math.round((screen.width - 620) / 2),
+          y: Math.round((screen.height - 600) / 2),
+        });
+      }
+    })
+
+    observer.observe(this.view_ref)
+    this.unmount_fn = () => {
+      observer.unobserve(this.view_ref);
+    }
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: *) {
     this.sideeffects(prevProps);
+  }
+
+  componentWillUnmount() {
+    this.unmount_fn();
   }
 
   render() {

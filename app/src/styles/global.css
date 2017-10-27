@@ -1,14 +1,16 @@
-/*
- * Global constants goes here
- */
 :root {
     --primary-color: #42b983;
 }
 
+a {
+  color: rgb(49, 50, 97);
+  font-weight: 100;
+  text-decoration: none;
+}
+a:hover {
+  color: rgb(0, 85, 86);
+}
 
-/*
- * Global CSS goes here
- */
 html {
     height: 100%;
 }

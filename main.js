@@ -127,6 +127,7 @@ app.on('ready', async () => {
     show: false,
     frame: false,
     vibrancy: 'light',
+    webPreferences: { experimentalFeatures: true },
   });
   mainWindow.setVisibleOnAllWorkspaces(true);
 
@@ -144,9 +145,27 @@ app.on('ready', async () => {
     });
   });
 
+  // This parts makes <a> tags go to default browser
+  const handleRedirect = (e, url) => {
+    if(url != mainWindow.webContents.getURL()) {
+      e.preventDefault()
+      require('electron').shell.openExternal(url)
+    }
+  }
+  mainWindow.webContents.on('will-navigate', handleRedirect);
+  mainWindow.webContents.on('new-window', handleRedirect);
+
 
   ipcMain.on('resize_me', (event, bounds) => {
     mainWindow.setBounds(bounds);
+  })
+  ipcMain.on('visibility_me', (event, { open }) => {
+    if (open === true) {
+      mainWindow.show()
+    } else {
+      // TODO More advanced hiding ;)
+      mainWindow.hide();
+    }
   })
 
   ipcMain.on('ondragstart', (event, filePath) => {

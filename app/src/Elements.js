@@ -46,3 +46,50 @@ export const Flex = ({ style, row, column, ...props }: { style?: any, row?: bool
     />
   );
 };
+
+const no_cache = Symbol();
+
+export class DelayRepeatedRender extends React.Component<{ children: any, delay: number }, { last_children: ?any }> {
+  state = {
+    saved_children: this.props.children,
+  }
+  refresh_children_timer: number;
+
+  cache_children() {
+    if (this.state.saved_children === this.props.children) {
+      return;
+    }
+
+    clearTimeout(this.refresh_children_timer);
+    this.refresh_children_timer = setTimeout(() => {
+      this.setState({
+        saved_children: this.props.children,
+      })
+    }, this.props.delay);
+  }
+
+  componentDidMount() {
+    this.cache_children();
+  }
+
+  componentDidUpdate() {
+    this.cache_children();
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this.timeout);
+  }
+
+  render() {
+    console.log(`this.state.saved_children:`, this.state.saved_children)
+    return this.state.saved_children;
+  }
+}
+
+export const G = ({ children }) => {
+  return React.Children.map(children, (child, i) => {
+    return React.cloneElement(child, {
+      key: i,
+    })
+  })
+}

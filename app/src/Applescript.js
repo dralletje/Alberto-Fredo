@@ -2,7 +2,7 @@
 
 import osascript from 'osascript';
 
-export const exec_applescript = (script: string): mixed => {
+export const exec_applescript = (script: string): Promise<mixed> => {
   return new Promise((yell, cry) => {
     const real_script = `
       const main = () => {

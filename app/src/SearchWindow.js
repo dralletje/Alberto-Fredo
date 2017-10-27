@@ -7,7 +7,7 @@ import DocumentEvent from './DocumentEvent';
 
 class SearchWindow extends React.Component<{ open: boolean, onOpenChange: (next: boolean) => mixed, children?: any }> {
   componentDidMount() {
-    this.props.onOpenChange(true);
+    // this.props.onOpenChange(true);
   }
 
   render() {

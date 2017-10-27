@@ -11,9 +11,10 @@ import DraggingLayer from './DragndropLayer';
 import DocumentEvent from './DocumentEvent';
 import SearchWindow from './SearchWindow';
 import MathResult from './MathResult';
+import KnowledgeGraph from './KnowledgeGraph';
 import { exec_applescript } from './Applescript';
 
-import { Flex, Component, View, Space, precondition } from './Elements';
+import { Flex, Component, View, Space, precondition, DelayRepeatedRender } from './Elements';
 import { Window, File_Icon_Image, ipcRenderer, remote } from './Electron';
 import { clipboard } from 'electron';
 
@@ -173,6 +174,10 @@ class MatchItem extends React.Component<{ item: T_match_item, selected: boolean 
   }
 }
 
+const normalize_search_query = (query) => {
+  return query.toLowerCase().replace(/\s+/g, ' ');
+}
+
 type T_file = {
   path: string,
   name: string,
@@ -224,7 +229,7 @@ export default class App extends React.Component<{}, T_app_state> {
         })
       })
       return [].concat(...tabs);
-    `).then(tabs => {
+    `).then((tabs: any) => {
       this.setState({
         chrome_tabs: tabs.map(tab => {
           return {
@@ -239,7 +244,7 @@ export default class App extends React.Component<{}, T_app_state> {
     });
   }
 
-  componentDidUpdate(_, prevState) {
+  componentDidUpdate(_: mixed, prevState: { window_open: boolean }) {
     if (prevState.window_open !== this.state.window_open) {
       if (this.state.window_open === false) {
         this.setState({ search: '' });
@@ -251,7 +256,7 @@ export default class App extends React.Component<{}, T_app_state> {
         this.setState({ current_clipboard: clipboard.readImage() });
 
         exec_applescript(`return Application("System Events").processes.where({ backgroundOnly: false })().map(process => process.file().posixPath())`)
-        .then(currently_running => {
+        .then((currently_running: any) => {
           this.setState({ currently_running });
         });
       }
@@ -271,6 +276,8 @@ export default class App extends React.Component<{}, T_app_state> {
       chrome_tabs,
     } = this.state;
 
+    const query = normalize_search_query(search);
+
     const matching_apps =
       search === ''
         ? {
@@ -283,7 +290,7 @@ export default class App extends React.Component<{}, T_app_state> {
         : fuzzy_search({
             array: [...entries, ...chrome_tabs],
             key_selector: x => x.title,
-            search: search,
+            search: query,
           });
 
     const open_item = item => {
@@ -376,7 +383,7 @@ export default class App extends React.Component<{}, T_app_state> {
             autoFocus
             value={search}
             onChangeText={text => {
-              this.setState({ search: text.toLowerCase(), selected_index: 0 });
+              this.setState({ search: text, selected_index: 0 });
             }}
           />
 
@@ -391,7 +398,7 @@ export default class App extends React.Component<{}, T_app_state> {
           <MathResult
             text={search}
             onTextChange={text => {
-              
+
             }}
           />
 
@@ -419,6 +426,14 @@ export default class App extends React.Component<{}, T_app_state> {
               />
             ))}
           </Flex>
+
+
+            <DelayRepeatedRender delay={200}>
+              { query !== '' && <KnowledgeGraph
+                search={query}
+              />}
+            </DelayRepeatedRender>
+
 
           {search === '' &&
             dropped.length === 0 && (
