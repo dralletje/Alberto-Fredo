@@ -31,6 +31,7 @@
     "bluebird": "^3.5.1",
     "d3": "^3.5.17",
     "function-plot": "^1.18.1",
+    "github": "^12.0.1",
     "glamor": "^2.20.40",
     "glamorous": "^4.10.0",
     "ignore-loader": "^0.1.2",

@@ -81,7 +81,6 @@ export class DelayRepeatedRender extends React.Component<{ children: any, delay:
   }
 
   render() {
-    console.log(`this.state.saved_children:`, this.state.saved_children)
     return this.state.saved_children;
   }
 }

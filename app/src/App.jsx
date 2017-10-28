@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom';
 import './styles/global.css';
 import Promise from 'bluebird';
 import open_file from 'open';
+import fs_non_promise from 'fs';
 import { range } from 'lodash';
 
 import DraggingLayer from './DragndropLayer';
@@ -13,10 +14,17 @@ import SearchWindow from './SearchWindow';
 import MathResult from './MathResult';
 import KnowledgeGraph from './KnowledgeGraph';
 import { exec_applescript } from './Applescript';
+import Githubsearch from './GithubSearch';
 
 import { Flex, Component, View, Space, precondition, DelayRepeatedRender } from './Elements';
 import { Window, File_Icon_Image, ipcRenderer, remote } from './Electron';
 import { clipboard } from 'electron';
+
+const fs = Promise.promisifyAll(fs_non_promise);
+
+try {
+  fs.mkdirSync('./.cache')
+} catch (e) {}
 
 const rotate = (num, around_num) => {
   const relative = num % around_num;
@@ -427,12 +435,42 @@ export default class App extends React.Component<{}, T_app_state> {
             ))}
           </Flex>
 
+          <Githubsearch
+            search={search}
+            get_cache={async (file, retrieve) => {
+              const optional = async (promise) => {
+                try {
+                  const result = await promise;
+                  return { success: true, result, error: null };
+                } catch (e) {
+                  return { success: false, result: null, error: e };
+                }
+              }
 
-            <DelayRepeatedRender delay={200}>
-              { query !== '' && <KnowledgeGraph
-                search={query}
-              />}
-            </DelayRepeatedRender>
+              const cache_path = `./.cache/${file}`;
+              const file_result = await optional(fs.readFileAsync(cache_path).then(x => JSON.parse(x.toString())));
+
+              if (file_result.success) {
+                return file_result.result.data;
+              } else {
+                console.log('Fetching Formulas from github...');
+                const data = await retrieve();
+                const writen = await fs.writeFileAsync(cache_path, JSON.stringify({
+                  weather: `Beautiful`,
+                  data: data,
+                  fetch_date: Date.now(),
+                }))
+                return data;
+              }
+            }}
+          />
+
+
+          <DelayRepeatedRender delay={200}>
+            { query !== '' && <KnowledgeGraph
+              search={query}
+            />}
+          </DelayRepeatedRender>
 
 
           {search === '' &&

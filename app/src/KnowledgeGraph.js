@@ -7,7 +7,7 @@ const { knowledge_graph_api_key } = require('../../app_config.js');
 
 const get_url_for = ({ query }) => {
   const escaped = query.replace(/[ .,?!=&]/g, '+');
-  return `https://kgsearch.googleapis.com/v1/entities:search?query=${query}&key=${knowledge_graph_api_key}&limit=1&indent=True`;
+  return `https://kgsearch.googleapis.com/v1/entities:search?query=${query}&key=${knowledge_graph_api_key}&limit=3&indent=True`;
 };
 
 class KnowledgeGraph extends React.Component<{ search: string }, { result: ?any }> {
@@ -19,17 +19,14 @@ class KnowledgeGraph extends React.Component<{ search: string }, { result: ?any 
     const { search } = this.props;
     if (search === '') return;
 
-    console.log(`this.props, prevProps:`, this.props, prevProps)
     if (this.props.search !== prevProps.search) {
-      console.log('== Doing search');
       const search = this.props.search;
       const url = get_url_for({ query: search });
       const response = await fetch(url);
-      console.log(`>> search:`, search, this.props.search);
       if (search === this.props.search) {
         // Make sure the search didn't change
         const result = await response.json();
-        console.log(`== result:`, result);
+        console.log(`KnowledgeGraph result:`, result);
         this.setState({
           result: result,
         });
