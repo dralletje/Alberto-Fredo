@@ -7,6 +7,28 @@ export const precondition = (condition, message) => {
   }
 };
 
+type T_textinput_props = {
+  style: any,
+  value: string,
+  onChangeText?: (value: string) => void,
+};
+export class TextInput extends React.Component<T_textinput_props> {
+  render() {
+    const { style, value, onChangeText, ...props } = this.props;
+    return (
+      <input
+        {...props}
+        style={style}
+        type="text"
+        value={value}
+        onChange={e => {
+          onChangeText && onChangeText(e.target.value);
+        }}
+      />
+    );
+  }
+}
+
 export const View = ({ innerRef, css, ...props }: { innerRef?: (element: any) => mixed, css?: any }) => {
   if (css) {
     return <Div {...props} css={css} innerRef={innerRef} />;

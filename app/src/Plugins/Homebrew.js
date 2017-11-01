@@ -4,8 +4,6 @@ import React from 'react';
 import Promise from 'bluebird';
 import { flatten } from 'lodash';
 
-import { Flex } from './Elements';
-
 const github_api = async ({ url }) => {
   const token = `8d7c5ecba147621087d18b9f1b4db05fc1097355`;
 
@@ -13,11 +11,13 @@ const github_api = async ({ url }) => {
     url.startsWith(`http`)
     ? url
     : `https://api.github.com${url}`
+
   const response = await fetch(prefixed_url, {
     headers: {
       Authorization: `token ${token}`
     }
   });
+
   const result = await response.json();
   return result;
 }
@@ -58,50 +58,56 @@ const get_user_formulas = async ({ user }: { user: string }) => {
 
 type CacheFn<T> = (path: string, retrieve: Promise<T>) => Promise<T>
 
-class GithubSearch extends React.Component<{ search: string, get_cache: CacheFn<*>} , { entries: any }> {
-  state = {
-    entries: [],
-  }
+const pre_filter = ({ search }) => {
+  return search.length > 3;
+}
 
-  async componentDidMount() {
-    const { get_cache } = this.props;
-
-    const { entries } = await get_cache('eu.dral.homebrew_search', async () => {
-      const homebrew_entries = await get_user_formulas({ user: 'homebrew' })
-      const cask_entries = await get_user_formulas({ user: 'caskroom' })
-
-      const entries = [...cask_entries, ...homebrew_entries];
-      return {
-        entries: entries,
-        fetch_date: Date.now(),
-        weather: `Beautiful`,
-      };
-    });
-
-    this.setState({ entries });
-  }
-
-  render() {
-    const { entries } = this.state;
-    const { search } = this.props;
-
-    const valid_entries =
-      search.length > 3
-      ? entries.filter(entry => {
-        return entry.formulas.startsWith(search.toLowerCase())
-      })
-      : [];
-
-    return (
-      <Flex column>
-        { valid_entries.map(entry =>
-          <Flex>
-            {entry.formulas}
-          </Flex>
-        )}
-      </Flex>
-    );
+const simple_match = (search: string, title: string) => {
+  if (search.length > 3 && title.includes(search)) {
+    return title.length;
+  } else {
+    return -1;
   }
 }
 
-export default GithubSearch;
+export default {
+  item_match_function: simple_match,
+
+  retrieve_items: {
+    on_start: async ({ retrieve_with_cache }: any) => {
+      const { entries } = await retrieve_with_cache('eu.dral.homebrew_search', async () => {
+        const homebrew_entries = await get_user_formulas({ user: 'homebrew' })
+        const cask_entries = await get_user_formulas({ user: 'caskroom' })
+
+        const entries = [...cask_entries, ...homebrew_entries];
+        return {
+          entries: entries,
+          fetch_date: Date.now(),
+          weather: `Beautiful`,
+        };
+      });
+      const items = entries.map(entry => {
+        return {
+          match_fn: simple_match,
+          uid: `${entry.user}/${entry.repo}/${entry.formulas}`,
+          title: entry.formulas,
+          subtitle: `${entry.user}/${entry.repo}/${entry.formulas}`,
+          action: { type: 'terminal', command: `brew install "${entry.formulas}"` },
+          icon: {
+            type: 'image',
+            path: 'https://brew.sh/img/homebrew-256x256.png',
+          },
+        };
+      });
+      return items;
+    },
+
+    on_open: async () => {
+
+    },
+
+    on_search: async ({ query }: any) => {
+
+    },
+  }
+}
