@@ -20,6 +20,7 @@ import { Result_Medium } from './ResultsList';
 
 import { Flex, Component, View, Space, precondition, DelayRepeatedRender, TextInput } from './Elements';
 import { Window, File_Icon_Image, ipcRenderer, remote } from './Electron';
+import { IconImage } from './IconImage';
 import { clipboard } from 'electron';
 
 import Apps_Plugin from './Plugins/Apps';
@@ -207,12 +208,10 @@ class MatchItem extends React.Component<{ item: T_match_item, selected: boolean 
     return (
       <Result_Medium
         render_icon={
-          <File_Icon_Image
+          <IconImage
             icon={item.icon}
-            style={{
-              height: 40,
-              minWidth: 40,
-            }}
+            height={40}
+            width={40}
           />
         }
         title={item.title}
@@ -495,7 +494,7 @@ export default class App extends React.Component<{}, T_app_state> {
               display: matching_apps.length === 0 ? 'none' : 'block',
             }}
           >
-            {matching_apps.items.slice(0, 5).map((x, i) => (
+            {matching_apps.items.slice(0, 1).map((x, i) => (
               <MatchItem
                 key={x.uid}
                 item={x}

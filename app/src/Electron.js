@@ -6,8 +6,8 @@ export const remote = require('electron').remote;
 export const ipcRenderer = require('electron').ipcRenderer;
 const nativeImage = require('electron').nativeImage;
 
-const req = global['req' + 'uire']
-const iconImage = req('../electron-icon-image');
+const native_require = global['req' + 'uire'];
+const iconImage = native_require('../electron-icon-image');
 import { Flex} from './Elements';
 
 export const icons_cache: Map<string, string> = new Map();

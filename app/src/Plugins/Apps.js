@@ -29,8 +29,12 @@ const generate_app_entries = async () => {
   const apps = await get_lines(mdfind_apps_command);
 
   return await Promise.all(apps.map(async app_path => {
-    return await info_from_bundle(app_path);
-  }));
+    try {
+      return await info_from_bundle(app_path);
+    } catch (e) {
+      return null;
+    }  }))
+    .filter(Boolean);
 }
 
 const generate_preference_entries = async () => {
@@ -38,8 +42,13 @@ const generate_preference_entries = async () => {
   const apps = await get_lines(mdfind_apps_command);
 
   return await Promise.all(apps.map(async app_path => {
-    return await info_from_bundle(app_path);
-  }));
+    try {
+      return await info_from_bundle(app_path);
+    } catch (e) {
+      return null;
+    }
+  }))
+  .filter(Boolean);
 }
 
 export default {

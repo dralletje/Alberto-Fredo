@@ -101,6 +101,20 @@ app.on('ready', async () => {
     }
   })
 
+  ipcMain.on('render_image', (event, props) => {
+    const nsimage_render = require('./electron-nsimage-render');
+    const options = {
+      Path: props.Path,
+      X: props.X,
+      Y: props.Y,
+      Width: props.Width,
+      Height: props.Height,
+    };
+    const id = nsimage_render.AddView(mainWindow, options);
+    console.log(`id:`, id);
+    // ipcMain.send('render_image')
+  })
+
   ipcMain.on('ondragstart', (event, filePath) => {
     const icon_path =
       filePath.match(/(\.png|\.jpg)$/)
@@ -121,18 +135,6 @@ app.on('ready', async () => {
   mainWindow.on('focus', () => {
     mainWindow.send('focus');
   });
-
-  // console.log(`vibrancy:`, vibrancy)
-  vibrancy.AddView(mainWindow, {
-    Path: '/Applications/Calendar.app',
-    Material: 2,
-    X: 0,
-    Y: 0,
-    Width: 500,
-    Height: 500,
-    ResizeMask: 3,
-  })
-
 
   // Register a 'CommandOrControl+X' shortcut listener.
   const ret = globalShortcut.register('CommandOrControl+Shift+Space', async () => {
