@@ -4,7 +4,7 @@ const Promise = require('bluebird');
 const { app, BrowserWindow, globalShortcut, ipcMain, nativeImage } = electron
 
 const child_process = Promise.promisifyAll(require('child_process'))
-const vibrancy = require('./electron-vibrancy');
+const vibrancy = require('./electron-nsimage-render');
 // const fs = Promise.promisifyAll(require('fs'));
 // const $ = require('NodObjC');
 // $.import('Foundation');
@@ -124,6 +124,7 @@ app.on('ready', async () => {
 
   // console.log(`vibrancy:`, vibrancy)
   vibrancy.AddView(mainWindow, {
+    Path: '/Applications/Calendar.app',
     Material: 2,
     X: 0,
     Y: 0,
@@ -134,7 +135,7 @@ app.on('ready', async () => {
 
 
   // Register a 'CommandOrControl+X' shortcut listener.
-  const ret = globalShortcut.register('CommandOrControl+Space', async () => {
+  const ret = globalShortcut.register('CommandOrControl+Shift+Space', async () => {
     mainWindow.send('toggle_search_shortcut');
   });
 

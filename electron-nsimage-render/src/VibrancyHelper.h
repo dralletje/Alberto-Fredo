@@ -44,6 +44,7 @@ namespace Vibrancy {
                 int X;
                 int Y;
                 int Material;
+                char *Path;
             };
             ViewOptions GetOptions(v8::Local<v8::Array> options);
             std::map<int, NSImageView* > views_;

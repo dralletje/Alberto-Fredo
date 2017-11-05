@@ -62,8 +62,8 @@ namespace Vibrancy {
         // if (viewOptions.Y < 0)
         //     return viewId;
         //
-        // NSVisualEffectView* vibrantView =
-        //     [[NSVisualEffectView alloc] initWithFrame:NSMakeRect(viewOptions.X,
+        // NSImageView* vibrantView =
+        //     [[NSImageView alloc] initWithFrame:NSMakeRect(viewOptions.X,
         //         viewOptions.Y,
         //         viewOptions.Width,
         //         viewOptions.Height)];
@@ -83,7 +83,9 @@ namespace Vibrancy {
         //     positioned:NSWindowBelow
         //     relativeTo:nil];
 
-        NSImage * image = [[NSWorkspace sharedWorkspace] iconForFile:@"/Applications/Google Chrome.app"];
+        printf(":: %s ::\n", viewOptions.Path);
+
+        NSImage * image = [[NSWorkspace sharedWorkspace] iconForFile:[NSString stringWithUTF8String:viewOptions.Path]];
         [image setSize:CGSizeMake(60, 60)];
 
         int height = 60;
@@ -121,7 +123,7 @@ namespace Vibrancy {
     //     if (viewOptions.ViewId == -1)
     //         return false;
     //
-    //     NSVisualEffectView* vibrantView = views_[viewOptions.ViewId];
+    //     NSImageView* vibrantView = views_[viewOptions.ViewId];
     //
     //     if (!vibrantView)
     //         return false;
@@ -157,15 +159,15 @@ namespace Vibrancy {
 
         int viewId = vView->Int32Value();
 
-        if (viewId == -1 || viewId > static_cast<int>(views_. ()))
-            return false;
+        // if (viewId == -1 || viewId > static_cast<int>(views_. ()))
+        //     return false;
 
-        std::map<int, NSVisualEffectView*>::iterator It = views_.find(viewId);
+        std::map<int, NSImageView*>::iterator It = views_.find(viewId);
 
         if (It == views_.end())
             return false;
 
-        NSVisualEffectView* vibrantView = It->second;
+        NSImageView* vibrantView = It->second;
 
         if (!vibrantView)
             return false;
@@ -229,6 +231,11 @@ namespace Vibrancy {
             if (!vY->IsNull() && vY->IsInt32())
                 viewOptions.Y = vY->Int32Value();
         }
+
+        V8Value thing = options->Get(
+            v8::String::NewFromUtf8(isolate, "Path"));
+        v8::String::Utf8Value str(thing->ToString());
+        viewOptions.Path = *str;
 
         if (!vAutoResizeMask->IsNull() && vAutoResizeMask->IsInt32()) {
             viewOptions.ResizeMask = vAutoResizeMask->Int32Value();
