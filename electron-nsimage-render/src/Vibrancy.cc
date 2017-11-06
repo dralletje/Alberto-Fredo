@@ -59,8 +59,7 @@ namespace Vibrancy {
     }
 
     NAN_METHOD(Vibrancy::UpdateView) {
-        v8::Local<v8::Int32> key =
-            info[0].As<v8::Int32>();
+        int32_t key = Nan::To<int32_t>(info[0]).FromMaybe(0);
         v8::Local<v8::Object> handleBuffer =
             info[1].As<v8::Object>();
         v8::Local<v8::Array> options =
@@ -70,20 +69,21 @@ namespace Vibrancy {
 
         bool result = false;
 
-        result = vibHelper_.UpdateView(key->Int32Value(), (unsigned char*)bufferData, options);
+        result = vibHelper_.UpdateView(key, (unsigned char*)bufferData, options);
 
         info.GetReturnValue().Set(result);
     }
 
     NAN_METHOD(Vibrancy::RemoveView) {
+        int32_t key = Nan::To<int32_t>(info[0]).FromMaybe(0);
         v8::Local<v8::Object> handleBuffer =
-            info[0].As<v8::Object>();
+            info[1].As<v8::Object>();
 
         char* bufferData = node::Buffer::Data(handleBuffer);
 
         bool result = false;
 
-        result = vibHelper_.RemoveView(1, (unsigned char*)bufferData);
+        result = vibHelper_.RemoveView(key, (unsigned char*)bufferData);
 
         info.GetReturnValue().Set(result);
     }

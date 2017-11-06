@@ -60,21 +60,37 @@ namespace Vibrancy {
           viewOptions.Width,
           viewOptions.Height
         );
+        // Convert to device space -- this is required for proper HiDPI support
+        frame = [[imageView superview] convertRectToBase:frame];
+        // At this point we can trunc/round/ceil
+        frame.origin.x = floor(frame.origin.x);
+        frame.origin.y = floor(frame.origin.y);
+        // Convert back to the view's coordinate system
+        frame = [imageView.superview convertRectFromBase:frame];
+        [imageView setFrame:frame];
+        NSLog(@":: %@", NSStringFromRect(frame));
 
         if (!window_view)
             return false;
 
         NSLog(@"path_string: %@", path_string);
         NSImage * image = [[NSWorkspace sharedWorkspace] iconForFile:path_string];
-        [image setSize:CGSizeMake(viewOptions.Width * 2, viewOptions.Height * 2)];
+        [image setSize:CGSizeMake(40, 40)];
+
+        CGFloat desiredScaleFactor = [window_view.window backingScaleFactor];
+        CGFloat actualScaleFactor = [image recommendedLayerContentsScale:desiredScaleFactor];
+        id layerContents = [image layerContentsForContentsScale:actualScaleFactor];
 
         if (!imageView) {
           // render()
           NSView * image_backed_view = [[NSView alloc] initWithFrame:frame];
           image_backed_view.layer = [[CALayer alloc] init];
-          image_backed_view.layer.contentsGravity = kCAGravityResizeAspectFill;
-          image_backed_view.layer.contents = image;
+          // image_backed_view.layer.contentsGravity = kCAGravityResizeAspectFill;
+          // image_backed_view.layer.contents = image;
           image_backed_view.wantsLayer = YES;
+
+          [image_backed_view.layer setContents:layerContents];
+          [image_backed_view.layer setContentsScale:actualScaleFactor];
 
           // mount()
           [window_view.window.contentView
@@ -93,14 +109,14 @@ namespace Vibrancy {
     }
 
     bool VibrancyHHelper::RemoveView(int32_t key, unsigned char* buffer) {
-      // NSImageView* imageView = [views_ objectForKey:[NSNumber numberWithInt:key]];
-      //
-      //   if (!imageView)
-      //       return false;
-      //
-      //   NSView* viewToRemove = imageView;
-      //   [viewToRemove removeFromSuperview];
-      //   [views_ removeObjectForKey:[NSNumber numberWithInt:key]];
+      NSImageView* imageView = [views_ objectForKey:[NSNumber numberWithInt:key]];
+
+        if (!imageView)
+            return false;
+
+        NSView* viewToRemove = imageView;
+        [viewToRemove removeFromSuperview];
+        [views_ removeObjectForKey:[NSNumber numberWithInt:key]];
 
         return true;
     }

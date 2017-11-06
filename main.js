@@ -104,23 +104,22 @@ app.on('ready', async () => {
   ipcMain.on('render_images', (event, { images }) => {
     const nsimage_render = require('./electron-nsimage-render');
 
-    console.log(`images:`, images);
-
     images.forEach(([key, change]) => {
       console.log(`[id, change]:`, [key, change]);
       if (change.type === 'set') {
         const value = change.value;
         const options = {
           Path: value.file,
-          X: value.top,
-          Y: value.left,
+          X: value.left,
+          Y: value.bottom,
           Width: value.width,
           Height: value.height,
         };
         const view_id = nsimage_render.UpdateView(key, mainWindow, options);
       }
       if (change.type === 'delete') {
-        const view_id = nsimage_render.RemoveView(key, mainWindow, options);
+        console.log('gogogogo');
+        const view_id = nsimage_render.RemoveView(key, mainWindow);
       }
     })
 

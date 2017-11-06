@@ -31,6 +31,7 @@ export class ContextchildProvider extends React.Component {
   changes: Map<Id, any> = new Map();
 
   provide_attention = () => {
+    console.log('GENERATING NEW ID')
     const id = this.next_id;
     this.next_id = this.next_id + 1;
 
@@ -88,8 +89,12 @@ export class ContextChild extends React.Component {
     this.counter = this.counter + 1;
   }
 
+  componentWillUnmount() {
+    this.attention.remove();
+  }
+
   render() {
     console.log(`this.context:`, this.context);
-    return null;
+    return this.props.children || null;
   }
 }

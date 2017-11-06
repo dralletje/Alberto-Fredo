@@ -494,7 +494,7 @@ export default class App extends React.Component<{}, T_app_state> {
               display: matching_apps.length === 0 ? 'none' : 'block',
             }}
           >
-            {matching_apps.items.slice(0, 1).map((x, i) => (
+            {matching_apps.items.slice(0, 5).map((x, i) => (
               <MatchItem
                 key={x.uid}
                 item={x}

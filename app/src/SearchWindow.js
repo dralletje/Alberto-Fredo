@@ -43,18 +43,6 @@ class SearchWindow extends React.Component<{ open: boolean, onOpenChange: (next:
             }}
           />
 
-          <ContextChild
-            onMount={() => {
-              return {
-                file: "/Applications/Sketch.app",
-                height: 40,
-                width: 40,
-                top: 80,
-                left: 80,
-              }
-            }}
-          />
-
           {this.props.children}
         </Window>
       </ContextchildProvider>
