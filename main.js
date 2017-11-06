@@ -101,17 +101,39 @@ app.on('ready', async () => {
     }
   })
 
-  ipcMain.on('render_image', (event, props) => {
+  ipcMain.on('render_images', (event, { images }) => {
     const nsimage_render = require('./electron-nsimage-render');
-    const options = {
-      Path: props.Path,
-      X: props.X,
-      Y: props.Y,
-      Width: props.Width,
-      Height: props.Height,
-    };
-    const id = nsimage_render.AddView(mainWindow, options);
-    console.log(`id:`, id);
+
+    console.log(`images:`, images);
+
+    images.forEach(([key, change]) => {
+      console.log(`[id, change]:`, [key, change]);
+      if (change.type === 'set') {
+        const value = change.value;
+        const options = {
+          Path: value.file,
+          X: value.top,
+          Y: value.left,
+          Width: value.width,
+          Height: value.height,
+        };
+        const view_id = nsimage_render.UpdateView(key, mainWindow, options);
+      }
+      if (change.type === 'delete') {
+        const view_id = nsimage_render.RemoveView(key, mainWindow, options);
+      }
+    })
+
+
+    // const options = {
+    //   Path: props.Path,
+    //   X: props.X,
+    //   Y: props.Y,
+    //   Width: props.Width,
+    //   Height: props.Height,
+    // };
+    // const id = nsimage_render.AddView(mainWindow, options);
+    // console.log(`id:`, id);
     // ipcMain.send('render_image')
   })
 

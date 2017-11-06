@@ -30,29 +30,22 @@
 #include "./Common.h"
 //----------------------------------------------------------------------------
 namespace Vibrancy {
-    class VibrancyHelper {
+  struct ViewOptions {
+      int Width;
+      int Height;
+      int X;
+      int Y;
+      NSString *Path;
+  };
+    class VibrancyHHelper {
+
+
      public:
-        VibrancyHelper();
-        ~VibrancyHelper() { }
-        bool DisableVibrancy(unsigned char* buffer);
         #ifdef PLATFORM_OSX
-            struct ViewOptions {
-                int ViewId;
-                int ResizeMask;
-                int Width;
-                int Height;
-                int X;
-                int Y;
-                int Material;
-                char *Path;
-            };
             ViewOptions GetOptions(v8::Local<v8::Array> options);
-            std::map<int, NSImageView* > views_;
-            int viewIndex_;
         #endif
-        int32_t AddView(unsigned char* buffer, v8::Local<v8::Array> options);
-        bool UpdateView(unsigned char* buffer, v8::Local<v8::Array> options);
-        bool RemoveView(unsigned char* buffer, v8::Local<v8::Array> options);
+        bool UpdateView(int32_t key, unsigned char* buffer, v8::Local<v8::Array> options);
+        bool RemoveView(int32_t key, unsigned char* buffer);
     };
 }  // namespace Vibrancy
 //----------------------------------------------------------------------------

@@ -27,7 +27,10 @@
 
 #include "./VibrancyHelper.h"
 
+
 namespace Vibrancy {
+    NSMutableDictionary * views_ = [[NSMutableDictionary alloc] init];
+
     V8Value get_propertie(v8::Local<v8::Array> object, const char *key) {
       return object->Get(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key));
     }
@@ -40,23 +43,17 @@ namespace Vibrancy {
         operatingSystemVersion.minorVersion > 10;
     }
 
-    VibrancyHelper::VibrancyHelper() : viewIndex_(0) {
-    }
-
-    int32_t VibrancyHelper::AddView(unsigned char* buffer, v8::Local<v8::Array> options) {
-        NSView* window_view = *reinterpret_cast<NSView**>(buffer);
-        if (!window_view)
-            return -1;
-        NSRect window_frame = [[window_view window] frame];
-
+    bool VibrancyHHelper::UpdateView(int32_t key, unsigned char* buffer, v8::Local<v8::Array> options) {
         ViewOptions viewOptions = GetOptions(options);
-        NSString * path_string = [NSString stringWithUTF8String:viewOptions.Path];
+        NSString * path_string = viewOptions.Path;
+        NSView* window_view = *reinterpret_cast<NSView**>(buffer);
 
-        NSLog(@"Windowheight (%f) - offset top (%d)", window_frame.size.height, viewOptions.Y);
-        NSLog(@"Path: %@", path_string);
+        NSLog(@"views_: %@", views_);
 
-        NSImage * image = [[NSWorkspace sharedWorkspace] iconForFile:path_string];
-        [image setSize:CGSizeMake(viewOptions.Width * 2, viewOptions.Height * 2)];
+        NSImageView* imageView = [views_ objectForKey:[NSNumber numberWithInt:key]];
+        // NSImageView* imageView = nil;
+
+        NSRect window_frame = [[window_view window] frame];
         NSRect frame = NSMakeRect(
           viewOptions.X,
           window_frame.size.height - viewOptions.Y,
@@ -64,95 +61,59 @@ namespace Vibrancy {
           viewOptions.Height
         );
 
-        NSView * image_backed_view = [[NSView alloc] initWithFrame:frame];
+        if (!window_view)
+            return false;
 
-        image_backed_view.layer = [[CALayer alloc] init];
-        image_backed_view.layer.contentsGravity = kCAGravityResizeAspectFill;
-        image_backed_view.layer.contents = image;
-        image_backed_view.wantsLayer = YES;
+        NSLog(@"path_string: %@", path_string);
+        NSImage * image = [[NSWorkspace sharedWorkspace] iconForFile:path_string];
+        [image setSize:CGSizeMake(viewOptions.Width * 2, viewOptions.Height * 2)];
 
-        // [windowview.window.contentView
-        //     addSubview:image_backed_view
-        //     positioned:NSWindowAbove
-        //     relativeTo: [[windowview.window.contentView subviews] objectAtIndex:0]
-        // ];
+        if (!imageView) {
+          // render()
+          NSView * image_backed_view = [[NSView alloc] initWithFrame:frame];
+          image_backed_view.layer = [[CALayer alloc] init];
+          image_backed_view.layer.contentsGravity = kCAGravityResizeAspectFill;
+          image_backed_view.layer.contents = image;
+          image_backed_view.wantsLayer = YES;
 
-        NSLog(@"Subviews: %@", [window_view.window.contentView subviews]);
+          // mount()
+          [window_view.window.contentView
+              addSubview:image_backed_view
+          ];
 
-        [window_view.window.contentView
-            addSubview:image_backed_view
-        ];
-
-        int viewId = viewIndex_;
-        views_.insert(std::make_pair(viewId, image_backed_view));
-        viewIndex_++;
-        return viewId;
+          NSLog(@"key: %@", [NSNumber numberWithInt:key]);
+          NSLog(@"image_backed_view: %@", image_backed_view);
+          [views_ setObject:image_backed_view forKey:[NSNumber numberWithInt:key]];
+          return true;
+        } else {
+          NSLog(@"update key: %d", key);
+          [imageView setFrame:frame];
+          return true;
+        }
     }
 
-    bool VibrancyHelper::UpdateView(unsigned char* buffer, v8::Local<v8::Array> options) {
-        ViewOptions viewOptions = GetOptions(options);
-
-        if (viewOptions.ViewId == -1)
-            return false;
-
-        NSImageView* imageView = views_[viewOptions.ViewId];
-        if (!imageView)
-            return false;
-
-        NSRect frame = NSMakeRect(
-          viewOptions.X,
-          viewOptions.Y,
-          viewOptions.Width,
-          viewOptions.Height
-        );
-        [imageView setFrame:frame];
+    bool VibrancyHHelper::RemoveView(int32_t key, unsigned char* buffer) {
+      // NSImageView* imageView = [views_ objectForKey:[NSNumber numberWithInt:key]];
+      //
+      //   if (!imageView)
+      //       return false;
+      //
+      //   NSView* viewToRemove = imageView;
+      //   [viewToRemove removeFromSuperview];
+      //   [views_ removeObjectForKey:[NSNumber numberWithInt:key]];
 
         return true;
     }
 
-    bool VibrancyHelper::RemoveView(unsigned char* buffer, v8::Local<v8::Array> options) {
-        V8Value vView = get_propertie(options, "ViewId");
-
-        if (vView->IsNull() || !vView->IsInt32())
-            return false;
-
-        int viewId = vView->Int32Value();
-
-        // if (viewId == -1 || viewId > static_cast<int>(views_. ()))
-        //     return false;
-
-        std::map<int, NSImageView*>::iterator It = views_.find(viewId);
-
-        if (It == views_.end())
-            return false;
-
-        NSImageView* vibrantView = It->second;
-
-        if (!vibrantView)
-            return false;
-
-        views_.erase(viewId);
-
-        NSView* viewToRemove = vibrantView;
-        [viewToRemove removeFromSuperview];
-
-        return true;
-    }
-
-    VibrancyHelper::ViewOptions VibrancyHelper::GetOptions(v8::Local<v8::Array> options) {
-        VibrancyHelper::ViewOptions viewOptions;
+    ViewOptions VibrancyHHelper::GetOptions(v8::Local<v8::Array> options) {
+        ViewOptions viewOptions;
         viewOptions.Width = 0;
         viewOptions.Height = 0;
         viewOptions.X = 0;
         viewOptions.Y = 0;
-        viewOptions.ViewId = -1;
 
         V8Value vPosition = get_propertie(options, "Position");
         V8Value vSize = get_propertie(options, "Size");
-        V8Value vViewId = get_propertie(options, "ViewId");
-
-        if (!vViewId->IsNull() && vViewId->IsInt32())
-            viewOptions.ViewId = vViewId->Int32Value();
 
         if (!vSize->IsUndefined() && !vSize->IsNull()) {
             V8Array vaSize =
@@ -182,22 +143,9 @@ namespace Vibrancy {
         }
 
         V8Value thing = get_propertie(options, "Path");
-        v8::String::Utf8Value str(thing->ToString());
-        NSLog(@"Object: %s", *str);
-        viewOptions.Path = *str;
+        v8::String::Utf8Value str(thing->ToString()); // String::AsciiValue
+        viewOptions.Path = [NSString stringWithUTF8String:*str];
 
         return viewOptions;
-    }
-
-    bool VibrancyHelper::DisableVibrancy(unsigned char* windowHandleBuffer) {
-        if (views_.size() > 0) {
-            for (size_t i = 0; i < views_.size(); ++i) {
-                NSView* viewToRemove = views_[i];
-                [viewToRemove removeFromSuperview];
-            }
-
-            views_.clear();
-        }
-        return true;
     }
 }  // namespace Vibrancy
