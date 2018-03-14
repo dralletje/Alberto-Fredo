@@ -17,7 +17,7 @@ class SearchWindow extends React.Component<{ open: boolean, onOpenChange: (next:
       <ContextchildProvider>
         <Window
           open={this.props.open}
-          style={{ width: 620 }}
+          style={{ width: 620, backgroundColor: '#eee' }}
         >
           <DocumentEvent
             name="keyDown"

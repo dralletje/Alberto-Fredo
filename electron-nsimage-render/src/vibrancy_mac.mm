@@ -75,7 +75,7 @@ namespace Vibrancy {
 
         NSLog(@"path_string: %@", path_string);
         NSImage * image = [[NSWorkspace sharedWorkspace] iconForFile:path_string];
-        [image setSize:CGSizeMake(40, 40)];
+        [image setSize:CGSizeMake(viewOptions.Height, viewOptions.Width)];
 
         CGFloat desiredScaleFactor = [window_view.window backingScaleFactor];
         CGFloat actualScaleFactor = [image recommendedLayerContentsScale:desiredScaleFactor];

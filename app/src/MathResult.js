@@ -38,7 +38,7 @@ class Graph extends React.Component<{ fn: string }> {
 }
 
 const try_parsing_as_math = (math_string, force) => {
-  const known_symbols = ['pi', 'tau', 'e', 'i'];
+  const known_symbols = ['pi', 'tau', 'e'];
   try {
     let has_operation = false;
     let has_number = false;
@@ -89,7 +89,7 @@ const try_parsing_as_math = (math_string, force) => {
         tree: parsed,
         result: !is_abstract && parsed.eval({
           e: Math.E,
-        }),
+        }).toString(),
         simplified: is_abstract && mutate_thing(math.simplify(parsed), node => {
           if (!node) return;
           if (node.type === 'OperatorNode' && node.fn === 'multiply') {
@@ -124,10 +124,14 @@ class MathResult extends React.PureComponent<{ text: string, onTextChange: (text
   render() {
     const { text, onTextChange } = this.props;
 
+    console.log(`text:`, text);
+
     const math_result =
       text.startsWith('=')
       ? try_parsing_as_math(text.slice(1), true)
       : try_parsing_as_math(text, false)
+
+    console.log(`math_result:`, math_result)
 
     if (math_result == null) {
       return null;

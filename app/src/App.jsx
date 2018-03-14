@@ -13,7 +13,7 @@ import DraggingLayer from './DragndropLayer';
 import DocumentEvent from './DocumentEvent';
 import SearchWindow from './SearchWindow';
 import MathResult from './MathResult';
-// import KnowledgeGraph from './KnowledgeGraph';
+import KnowledgeGraph from './__KnowledgeGraph';
 import { exec_applescript } from './Applescript';
 
 import { Result_Medium } from './ResultsList';
@@ -45,7 +45,7 @@ class FeelingLucky extends React.Component<{search : string}> {
     });
 
     const redirect_url = response.url;
-    console.log(`redirect_url:`, redirect_url);
+    // console.log(`redirect_url:`, redirect_url);
     if (redirect_url.match(/https?:\/\/(www\.)?google\.[a-z]+\/search/)) {
       return;
     }
@@ -55,8 +55,8 @@ class FeelingLucky extends React.Component<{search : string}> {
     const parser = new DOMParser();
     const doc = parser.parseFromString(text, "text/html");
 
-    console.log(`redirect_url:`, redirect_url);
-    console.log(`doc:`, doc);
+    // console.log(`redirect_url:`, redirect_url);
+    // console.log(`doc:`, doc);
 
     const meta_tags = Array.from(doc.querySelectorAll('meta'));
     const title_tag = doc.querySelector('title');
@@ -110,9 +110,9 @@ class FeelingLucky extends React.Component<{search : string}> {
     const valid_rel = ['icon', 'shortcut icon', 'apple-touch-icon', 'search', 'image_src'];
     const link_info = link_tags.filter(x => valid_rel.includes(x.getAttribute('rel')))
 
-    console.log(`link_info:`, link_info)
-    console.log(`info:`, info)
-    console.log(`title:`, title)
+    // console.log(`link_info:`, link_info)
+    // console.log(`info:`, info)
+    // console.log(`title:`, title)
   }
 
   async componentDidMount() {
@@ -207,11 +207,17 @@ class MatchItem extends React.Component<{ item: T_match_item, selected: boolean 
 
     return (
       <Result_Medium
+        // render_icon={
+        //   <IconImage
+        //     icon={item.icon}
+        //     height={40}
+        //     width={40}
+        //   />
+        // }
         render_icon={
-          <IconImage
+          <File_Icon_Image
             icon={item.icon}
-            height={40}
-            width={40}
+            style={{ height: 40, minWidth: 40 }}
           />
         }
         title={item.title}
@@ -517,11 +523,11 @@ export default class App extends React.Component<{}, T_app_state> {
             /> }
           </DelayRepeatedRender>
 
-          {/* <DelayRepeatedRender delay={200}>
+          <DelayRepeatedRender delay={200}>
             { query !== '' && <KnowledgeGraph
               search={query}
             />}
-          </DelayRepeatedRender> */}
+          </DelayRepeatedRender>
 
 
           {search === '' &&
