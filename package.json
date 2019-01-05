@@ -30,6 +30,8 @@
     "babel-preset-stage-2": "^6.24.1",
     "bluebird": "^3.5.1",
     "d3": "^3.5.17",
+    "ffi": "git+https://github.com/node-ffi/node-ffi",
+    "function-name": "^2.0.0",
     "function-plot": "^1.18.1",
     "github": "^12.0.1",
     "glamor": "^2.20.40",
@@ -39,12 +41,13 @@
     "katex": "^0.9.0-alpha1",
     "lodash": "^4.17.4",
     "mathjs": "^3.16.5",
-    "nodobjc": "^2.1.0",
+    "nodobjc": "git+https://github.com/dganzella/NodObjC.git",
     "open": "0.0.5",
     "osascript": "^1.2.0",
     "prop-types": "^15.6.0",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
-    "readplist": "^1.0.1"
+    "readplist": "^1.0.1",
+    "ref": "git+https://github.com/TooTallNate/ref"
   }
 }
