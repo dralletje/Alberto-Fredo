@@ -43,7 +43,7 @@
     "katex": "^0.9.0-alpha1",
     "lodash": "^4.17.4",
     "mathjs": "^3.16.5",
-    "open": "0.0.5",
+    "open": "6.0.0",
     "osascript": "^1.2.0",
     "prop-types": "^15.6.0",
     "react": "^16.11.0",
