@@ -31,49 +31,45 @@
 namespace Vibrancy {
     NSMutableDictionary * views_ = [[NSMutableDictionary alloc] init];
 
-    V8Value get_propertie(v8::Local<v8::Array> object, const char *key) {
-      return object->Get(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key));
-    }
+    // V8Value get_propertie(v8::Local<v8::Array> object, const char *key) {
+    //   return object->Get(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key));
+    // }
 
-    bool IsHigherThanYosemite() {
-        NSOperatingSystemVersion operatingSystemVersion =
-            [[NSProcessInfo processInfo] operatingSystemVersion];
-        return operatingSystemVersion.majorVersion == 10
-            &&
-        operatingSystemVersion.minorVersion > 10;
-    }
-
-    bool VibrancyHHelper::UpdateView(int32_t key, unsigned char* buffer, v8::Local<v8::Array> options) {
+    bool VibrancyHHelper::UpdateView(int32_t key, unsigned char* buffer, Napi::Object options) {
         ViewOptions viewOptions = GetOptions(options);
         NSString * path_string = viewOptions.Path;
         NSView* window_view = *reinterpret_cast<NSView**>(buffer);
 
-        NSLog(@"views_: %@", views_);
-
         NSImageView* imageView = [views_ objectForKey:[NSNumber numberWithInt:key]];
         // NSImageView* imageView = nil;
 
-        NSRect window_frame = [[window_view window] frame];
+        // NSRect window_frame = [[window_view window] frame];
         NSRect frame = NSMakeRect(
           viewOptions.X,
-          window_frame.size.height - viewOptions.Y,
+          viewOptions.Y,
           viewOptions.Width,
           viewOptions.Height
         );
+
+        NSLog(@"Frame [%@]: %@", path_string, NSStringFromRect(frame));
+
+
+        //convertRectFromBacking
+
         // Convert to device space -- this is required for proper HiDPI support
-        frame = [[imageView superview] convertRectToBase:frame];
+        frame = [[imageView superview] convertRectFromBacking:frame];
         // At this point we can trunc/round/ceil
         frame.origin.x = floor(frame.origin.x);
         frame.origin.y = floor(frame.origin.y);
         // Convert back to the view's coordinate system
-        frame = [imageView.superview convertRectFromBase:frame];
+        frame = [imageView.superview convertRectFromBacking:frame];
         [imageView setFrame:frame];
         NSLog(@":: %@", NSStringFromRect(frame));
 
         if (!window_view)
             return false;
 
-        NSLog(@"path_string: %@", path_string);
+        // NSLog(@"path_string: %@", path_string);
         NSImage * image = [[NSWorkspace sharedWorkspace] iconForFile:path_string];
         [image setSize:CGSizeMake(viewOptions.Height, viewOptions.Width)];
 
@@ -89,16 +85,34 @@ namespace Vibrancy {
           // image_backed_view.layer.contents = image;
           image_backed_view.wantsLayer = YES;
 
+          // image_backed_view.layer.sublayerTransform = CATransform3DMakeScale(1.0f, -1.0f, 1.0f);
+
+
           [image_backed_view.layer setContents:layerContents];
           [image_backed_view.layer setContentsScale:actualScaleFactor];
 
           // mount()
           [window_view.window.contentView
-              addSubview:image_backed_view
+              addSubview: image_backed_view
           ];
 
-          NSLog(@"key: %@", [NSNumber numberWithInt:key]);
-          NSLog(@"image_backed_view: %@", image_backed_view);
+          // NSLayoutConstraint *constraint = [NSLayoutConstraint
+          //   constraintWithItem: image_backed_view
+          //   attribute: NSLayoutAttributeTop
+          //   relatedBy: NSLayoutRelationEqual
+          //   toItem: window_view.window.contentView
+          //   attribute: NSLayoutAttributeTop
+          //   multiplier:1.0f
+          //   constant:viewOptions.Y
+          // ];
+          //
+          // [window_view.window.contentView addConstraint:constraint];
+
+          image_backed_view.autoresizingMask = NSViewMaxXMargin | NSViewMinYMargin;
+
+
+          // NSLog(@"key: %@", [NSNumber numberWithInt:key]);
+          // NSLog(@"image_backed_view: %@", image_backed_view);
           [views_ setObject:image_backed_view forKey:[NSNumber numberWithInt:key]];
           return true;
         } else {
@@ -108,7 +122,7 @@ namespace Vibrancy {
         }
     }
 
-    bool VibrancyHHelper::RemoveView(int32_t key, unsigned char* buffer) {
+    bool VibrancyHHelper::RemoveView(int32_t key) {
       NSImageView* imageView = [views_ objectForKey:[NSNumber numberWithInt:key]];
 
         if (!imageView)
@@ -121,46 +135,51 @@ namespace Vibrancy {
         return true;
     }
 
-    ViewOptions VibrancyHHelper::GetOptions(v8::Local<v8::Array> options) {
+    ViewOptions VibrancyHHelper::GetOptions(Napi::Object options) {
         ViewOptions viewOptions;
-        viewOptions.Width = 0;
-        viewOptions.Height = 0;
-        viewOptions.X = 0;
-        viewOptions.Y = 0;
+        viewOptions.Width = options.Get("width").As<Napi::Number>().Int32Value();
+        NSLog(@"viewOptions.Width: %i", viewOptions.Width);
+        viewOptions.Height = options.Get("height").As<Napi::Number>().Int32Value();
+        NSLog(@"viewOptions.Height: %i", viewOptions.Height);
+        // Mac coordinates have (0, 0) in the left *bottom*, not the top.
+        viewOptions.X = options.Get("left").As<Napi::Number>().Int32Value();
+        NSLog(@"viewOptions.X: %i", viewOptions.X);
+        viewOptions.Y = options.Get("bottom").As<Napi::Number>().Int32Value();
+        NSLog(@"viewOptions.Y: %i", viewOptions.Y);
 
-        V8Value vPosition = get_propertie(options, "Position");
-        V8Value vSize = get_propertie(options, "Size");
+        // V8Value vPosition = get_propertie(options, "Position");
+        // V8Value vSize = get_propertie(options, "Size");
+        //
+        // if (!vSize->IsUndefined() && !vSize->IsNull()) {
+        //     V8Array vaSize =
+        //         v8::Local<v8::Array>::Cast(vSize);
+        //
+        //     V8Value vWidth = get_propertie(vaSize, "width");
+        //     V8Value vHeight = get_propertie(vaSize, "height");
+        //
+        //     if (!vWidth->IsNull() && vWidth->IsInt32())
+        //         viewOptions.Width = vWidth->Int32Value();
+        //
+        //     if (!vHeight->IsNull() && vHeight->IsInt32())
+        //         viewOptions.Height = vHeight->Int32Value();
+        // }
+        //
+        // if (!vPosition->IsUndefined() && !vPosition->IsNull()) {
+        //     V8Array vaPosition = v8::Local<v8::Array>::Cast(vPosition);
+        //
+        //     V8Value vX = get_propertie(vaPosition, "x");
+        //     V8Value vY = get_propertie(vaPosition, "y");
+        //
+        //     if (!vX->IsNull() && vX->IsInt32())
+        //         viewOptions.X = vX->Int32Value();
+        //
+        //     if (!vY->IsNull() && vY->IsInt32())
+        //         viewOptions.Y = vY->Int32Value();
+        // }
 
-        if (!vSize->IsUndefined() && !vSize->IsNull()) {
-            V8Array vaSize =
-                v8::Local<v8::Array>::Cast(vSize);
-
-            V8Value vWidth = get_propertie(vaSize, "width");
-            V8Value vHeight = get_propertie(vaSize, "height");
-
-            if (!vWidth->IsNull() && vWidth->IsInt32())
-                viewOptions.Width = vWidth->Int32Value();
-
-            if (!vHeight->IsNull() && vHeight->IsInt32())
-                viewOptions.Height = vHeight->Int32Value();
-        }
-
-        if (!vPosition->IsUndefined() && !vPosition->IsNull()) {
-            V8Array vaPosition = v8::Local<v8::Array>::Cast(vPosition);
-
-            V8Value vX = get_propertie(vaPosition, "x");
-            V8Value vY = get_propertie(vaPosition, "y");
-
-            if (!vX->IsNull() && vX->IsInt32())
-                viewOptions.X = vX->Int32Value();
-
-            if (!vY->IsNull() && vY->IsInt32())
-                viewOptions.Y = vY->Int32Value();
-        }
-
-        V8Value thing = get_propertie(options, "Path");
-        v8::String::Utf8Value str(thing->ToString()); // String::AsciiValue
-        viewOptions.Path = [NSString stringWithUTF8String:*str];
+        // V8Value thing = get_propertie(options, "Path");
+        const char* str = options.Get("Path").ToString().Utf8Value().c_str(); // String::AsciiValue
+        viewOptions.Path = [NSString stringWithUTF8String:str];
 
         return viewOptions;
     }

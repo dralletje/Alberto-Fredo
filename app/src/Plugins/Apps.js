@@ -30,11 +30,16 @@ const generate_app_entries = async () => {
 
   return await Promise.all(apps.map(async app_path => {
     try {
-      return await info_from_bundle(app_path);
+      let bundle = await info_from_bundle(app_path);
+      if (bundle.subtitle.includes('node_modules')) {
+        return null;
+      }
+      return bundle;
     } catch (e) {
       return null;
-    }  }))
-    .filter(Boolean);
+    }
+  }))
+  .filter(Boolean);
 }
 
 const generate_preference_entries = async () => {

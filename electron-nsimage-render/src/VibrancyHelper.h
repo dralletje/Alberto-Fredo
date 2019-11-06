@@ -42,10 +42,10 @@ namespace Vibrancy {
 
      public:
         #ifdef PLATFORM_OSX
-            ViewOptions GetOptions(v8::Local<v8::Array> options);
+            ViewOptions GetOptions(Napi::Object options);
         #endif
-        bool UpdateView(int32_t key, unsigned char* buffer, v8::Local<v8::Array> options);
-        bool RemoveView(int32_t key, unsigned char* buffer);
+        bool UpdateView(int32_t key, unsigned char* buffer, Napi::Object options);
+        bool RemoveView(int32_t key);
     };
 }  // namespace Vibrancy
 //----------------------------------------------------------------------------

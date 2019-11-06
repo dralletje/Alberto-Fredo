@@ -26,10 +26,10 @@
 #define SRC_COMMON_H_
 //----------------------------------------------------------------------------
 
-#define V8Value v8::Local<v8::Value>
-#define V8Array v8::Local<v8::Array>
+// #define V8Value v8::Local<v8::Value>
+// #define V8Array v8::Local<v8::Array>
 
-#include <nan.h>
+#include <napi.h>
 
 #if defined(_MSC_VER)
 #define PLATFORM_WIN32

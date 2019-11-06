@@ -11,27 +11,29 @@
   "repository": "pastahito/electron-react-webpack",
   "license": "GPL",
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.23.1",
-    "babel-loader": "^6.3.2",
-    "babel-preset-es2017": "^6.24.1",
-    "babel-preset-react": "^6.23.0",
-    "babel-preset-stage-3": "^6.24.1",
-    "css-loader": "^0.26.1",
-    "electron": "^1.7.9",
+    "@babel/core": "^7.7.0",
+    "@babel/preset-env": "^7.7.1",
+    "babel-loader": "^8.0.6",
+    "css-loader": "^3.2.0",
+    "electron": "^7.1.0",
     "electron-rebuild": "^1.6.0",
     "electron-reload": "^1.1.0",
     "extract-text-webpack-plugin": "^2.0.0-rc.3",
-    "file-loader": "^0.9.0",
-    "flow-bin": "^0.57.3",
-    "webpack": "^2.2.1"
+    "file-loader": "^4.2.0",
+    "mini-css-extract-plugin": "^0.8.0",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
   },
+  "browserslist": [
+    "last 1 chrome version"
+  ],
   "dependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.7.0",
+    "@babel/plugin-transform-flow-strip-types": "^7.6.3",
+    "@babel/preset-react": "^7.7.0",
     "babel-preset-stage-2": "^6.24.1",
     "bluebird": "^3.5.1",
     "d3": "^3.5.17",
-    "ffi": "git+https://github.com/node-ffi/node-ffi",
-    "function-name": "^2.0.0",
     "function-plot": "^1.18.1",
     "github": "^12.0.1",
     "glamor": "^2.20.40",
@@ -41,13 +43,12 @@
     "katex": "^0.9.0-alpha1",
     "lodash": "^4.17.4",
     "mathjs": "^3.16.5",
-    "nodobjc": "git+https://github.com/dganzella/NodObjC.git",
     "open": "0.0.5",
     "osascript": "^1.2.0",
     "prop-types": "^15.6.0",
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
+    "react": "^16.11.0",
+    "react-dom": "^16.11.0",
     "readplist": "^1.0.1",
-    "ref": "git+https://github.com/TooTallNate/ref"
+    "styled-components": "^4.4.1"
   }
 }

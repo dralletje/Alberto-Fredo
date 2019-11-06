@@ -77,9 +77,10 @@ const DragndropLayer = ({ onDraggingChange, dragging, onDrop }) => {
 
             if (items_left.length === 0) {
               console.warn(`No suitable entries found in `, ev.dataTransfer);
+              onDraggingChange(false);
             } else {
               const item = items_left[0];
-              console.log(`item:`, item)
+              console.log(`Adding item to file bar:`, item)
               // TODO Allowing simple drags
               // this.setState({ dropped: [...dropped, item] });
               onDraggingChange(false);

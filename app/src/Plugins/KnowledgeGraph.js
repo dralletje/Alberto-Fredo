@@ -61,7 +61,6 @@ export default {
       //   console.log(`KnowledgeGraph result:`, result);
       return result.itemListElement.map(list_element => {
         const item = list_element.result;
-        console.log(`item:`, item);
         return {
           uid: item.name,
           title: item.name,

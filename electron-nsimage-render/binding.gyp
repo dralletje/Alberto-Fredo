@@ -2,9 +2,10 @@
     "targets": [
         {
             "target_name": "Vibrancy",
+            'defines': ['NAPI_DISABLE_CPP_EXCEPTIONS'],
             "sources": [
                 "src/Common.h",
-                "src/Vibrancy.h",
+                # "src/Vibrancy.h",
                 "src/Vibrancy.cc",
                 "src/VibrancyHelper.h",
                 # "src/vibrancy_win.cc",
@@ -47,9 +48,8 @@
             "variables":{
                 "CURRENT_DIR":"<!(echo %~dp0)"
             },
-            "include_dirs": [
-                "<!(node -e \"require('nan')\")"
-            ]
+            'include_dirs': [ "<!@(node -p \"require('node-addon-api').include\")" ],
+
         }
     ]
 }

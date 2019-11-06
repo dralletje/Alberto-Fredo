@@ -53,18 +53,20 @@ export class ContextchildProvider extends React.Component {
     };
   }
 
-  componentDidMount() {
+  send_changes() {
+    let images = [...this.changes.entries()];
     ipcRenderer.send('render_images', {
-      images: [...this.changes.entries()],
+      images: images,
     });
     this.changes = new Map();
   }
 
+  componentDidMount() {
+    this.send_changes();
+  }
+
   componentDidUpdate() {
-    ipcRenderer.send('render_images', {
-      images: [...this.changes.entries()],
-    });
-    this.changes = new Map();
+    this.send_changes();
   }
 
   render() {
@@ -94,7 +96,6 @@ export class ContextChild extends React.Component {
   }
 
   render() {
-    console.log(`this.context:`, this.context);
     return this.props.children || null;
   }
 }

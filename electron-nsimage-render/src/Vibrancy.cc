@@ -22,69 +22,47 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //----------------------------------------------------------------------------
-#include "./Vibrancy.h"
+// #include "./Vibrancy.h"
 #include "./Common.h"
-
-NAN_MODULE_INIT(InitAll) {
-    Vibrancy::Vibrancy::Init(target);
-}
-
-NODE_MODULE(Vibrancy, InitAll)
+#include "./VibrancyHelper.h"
 
 //----------------------------------------------------------------------------
-namespace Vibrancy {
-    static VibrancyHHelper vibHelper_;
+static Vibrancy::VibrancyHHelper vibHelper_;
 
-    // Vibrancy::Vibrancy() {
-    // }
-    //
-    // Vibrancy::~Vibrancy() {
-    // }
-    void Vibrancy::Init(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
-        v8::Local<v8::FunctionTemplate> tpl2 =
-            Nan::New<v8::FunctionTemplate>(UpdateView);
-        tpl2->InstanceTemplate()->SetInternalFieldCount(1);
+Napi::Boolean UpdateView(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
 
-        v8::Local<v8::FunctionTemplate> tpl3 =
-            Nan::New<v8::FunctionTemplate>(RemoveView);
-        tpl3->InstanceTemplate()->SetInternalFieldCount(1);
+  int32_t key = info[0].ToNumber().Int32Value();
+  char* bufferData = info[1].As<Napi::Buffer<char>>().Data();
+  Napi::Object options = info[2].As<Napi::Object>();
 
-        Nan::Set(target,
-            Nan::New("UpdateView").ToLocalChecked(),
-            Nan::GetFunction(tpl2).ToLocalChecked());
+  bool result = vibHelper_.UpdateView(key, (unsigned char*)bufferData, options);
 
-        Nan::Set(target,
-            Nan::New("RemoveView").ToLocalChecked(),
-            Nan::GetFunction(tpl3).ToLocalChecked());
-    }
+  return Napi::Boolean::New(env, result);
+}
 
-    NAN_METHOD(Vibrancy::UpdateView) {
-        int32_t key = Nan::To<int32_t>(info[0]).FromMaybe(0);
-        v8::Local<v8::Object> handleBuffer =
-            info[1].As<v8::Object>();
-        v8::Local<v8::Array> options =
-            info[2].As<v8::Array>();
+Napi::Boolean RemoveView(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
 
-        char* bufferData = node::Buffer::Data(handleBuffer);
+  int32_t key = info[0].ToNumber().Int32Value();
+  // v8::Local<v8::Object> handleBuffer =
+  //     info[1].As<v8::Object>();
+  //
+  // char* bufferData = node::Buffer::Data(handleBuffer);
 
-        bool result = false;
+  bool result = false;
 
-        result = vibHelper_.UpdateView(key, (unsigned char*)bufferData, options);
+  result = vibHelper_.RemoveView(key);
 
-        info.GetReturnValue().Set(result);
-    }
+  // info.GetReturnValue().Set(result);
 
-    NAN_METHOD(Vibrancy::RemoveView) {
-        int32_t key = Nan::To<int32_t>(info[0]).FromMaybe(0);
-        v8::Local<v8::Object> handleBuffer =
-            info[1].As<v8::Object>();
+  return Napi::Boolean::New(env, result);
+}
 
-        char* bufferData = node::Buffer::Data(handleBuffer);
+Napi::Object init(Napi::Env env, Napi::Object exports) {
+    exports.Set(Napi::String::New(env, "UpdateView"), Napi::Function::New(env, UpdateView));
+    exports.Set(Napi::String::New(env, "RemoveView"), Napi::Function::New(env, RemoveView));
+    return exports;
+};
 
-        bool result = false;
-
-        result = vibHelper_.RemoveView(key, (unsigned char*)bufferData);
-
-        info.GetReturnValue().Set(result);
-    }
-}   //  namespace Vibrancy
+NODE_API_MODULE(Vibrancy, init);

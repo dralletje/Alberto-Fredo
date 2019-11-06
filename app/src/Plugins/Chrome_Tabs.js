@@ -7,6 +7,7 @@ export default {
     },
 
     on_open: async () => {
+      console.log('Onopen chrome tabs');
       const tabs = await exec_applescript(`
         const Chrome = Application('Google Chrome')
         const windows = Chrome.windows()
@@ -17,6 +18,8 @@ export default {
         })
         return [].concat(...tabs);
       `);
+
+      console.log(`tabs:`, tabs)
       return tabs.map(tab => {
         return {
           icon: { type: 'file', path: '/Applications/Google Chrome.app' },

@@ -14,11 +14,10 @@ type T_textinput_props = {
 };
 export class TextInput extends React.Component<T_textinput_props> {
   render() {
-    const { style, value, onChangeText, ...props } = this.props;
+    const { value, onChangeText, ...props } = this.props;
     return (
       <input
         {...props}
-        style={style}
         type="text"
         value={value}
         onChange={e => {
@@ -105,12 +104,4 @@ export class DelayRepeatedRender extends React.Component<{ children: any, delay:
   render() {
     return this.state.saved_children;
   }
-}
-
-export const G = ({ children }) => {
-  return React.Children.map(children, (child, i) => {
-    return React.cloneElement(child, {
-      key: i,
-    })
-  })
 }

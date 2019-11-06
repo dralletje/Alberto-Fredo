@@ -124,14 +124,10 @@ class MathResult extends React.PureComponent<{ text: string, onTextChange: (text
   render() {
     const { text, onTextChange } = this.props;
 
-    console.log(`text:`, text);
-
     const math_result =
       text.startsWith('=')
       ? try_parsing_as_math(text.slice(1), true)
       : try_parsing_as_math(text, false)
-
-    console.log(`math_result:`, math_result)
 
     if (math_result == null) {
       return null;
