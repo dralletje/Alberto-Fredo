@@ -22,7 +22,7 @@
     "node-addon-api": "^1.7.1"
   },
   "devDependencies": {
-    "electron": "^7.1.0",
+    "electron": "^7.2.4",
     "electron-rebuild": "^1.8.6"
   }
 }
